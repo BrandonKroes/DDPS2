@@ -8,7 +8,7 @@ njp = NewJobPacket(packet_id="1", job_type=JobType.RENDER,
                        'start_frame': 1, 'stop_frame': 4,
                        'output_folder': "/home/brand/lu/ddps/assignment2/example/3/",
                        'engine': "CYCLES"})
-wd = WorkerDaemon()
+wd = WorkerDaemon("../config/conf.yaml")
 wd.add_scheduled_job(njp)
 
 wd.main()

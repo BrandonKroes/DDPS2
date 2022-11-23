@@ -21,9 +21,9 @@ class MasterDaemon(Operator):
     cron = []  # time sensitive operations
     workers = []
 
-    def __init__(self):
+    def __init__(self, config_path):
         super().__init__(OperatorTypes.MASTER)
-        self.conf = YAMLParser.PathToDict("../config/conf.yaml")
+        self.conf = YAMLParser.PathToDict(config_path)
         self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
 
         self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
@@ -57,6 +57,5 @@ class MasterDaemon(Operator):
             for operation in operations:
                 self.process_packet_operation(operation)
 
-
 if __name__ == "__main__":
-    MasterDaemon()
+    MasterDaemon("../config/conf.yaml")

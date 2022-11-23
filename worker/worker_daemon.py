@@ -24,9 +24,9 @@ class WorkerDaemon(Operator):
 
     idle = True
 
-    def __init__(self):
+    def __init__(self, config_path):
         super().__init__(OperatorTypes.WORKER)
-        self.conf = YAMLParser.PathToDict("../config/conf.yaml")
+        self.conf = YAMLParser.PathToDict(config_path)
         self.blender_path = self.conf['worker']['blender_path']
 
         self.worker_host = self.conf['master']['host']
