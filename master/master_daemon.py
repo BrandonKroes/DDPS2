@@ -57,5 +57,6 @@ class MasterDaemon(Operator):
             for operation in operations:
                 self.process_packet_operation(operation)
 
+
 if __name__ == "__main__":
     MasterDaemon("../config/conf.yaml")
