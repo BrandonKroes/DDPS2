@@ -14,16 +14,19 @@ class SendSocket:
         self.main()
 
     def send_message(self, packet: EndpointConfig):
-        s = socket.socket(packet.connection_type)
-        s.connect(packet.host, packet.port)
-        s.sendall(pickle.dumps(packet.dataframe))
+        s = socket.socket(packet.connection_type[0], packet.connection_type[1])
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.connect((packet.host, packet.port))
+        s.sendall(pickle.dumps(packet), )
+        s.close()
+
         return
 
     def main(self):
         while True:
             if self.pipe.poll():  # checking if we actually have to do something
                 packet = self.pipe.recv()
-                if type(packet) == EndpointConfig.__class__:
-                    self.send_message(packet)
-                else:
-                    print("invalid message || " + str(packet) + " ||")
+                # if type(packet) == EndpointConfig.__class__:
+                self.send_message(packet)
+                # else:
+                #    print("invalid message || " + str(packet) + " ||")

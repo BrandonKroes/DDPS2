@@ -1,3 +1,4 @@
+import multiprocessing
 import pickle
 import socket
 
@@ -20,19 +21,25 @@ class ReceiveSocket:
 
     def setup_socket(self):
         self.socket.bind((self.host, self.port))
+        self.socket.listen(1)
+
+    def get_message(self, conn, addr, pipe):
+        with conn:
+            buffer = b''
+            print(f"Connected by {addr}")
+            is_data = True
+            while is_data:
+                data = conn.recv(10000)
+                if not data:
+                    is_data = False
+                buffer = buffer + data
+            pipe.send(pickle.loads(buffer))
+            conn.close()
 
     def main(self):
-        with self.socket as s:
-            s.listen()
-            conn, addr = s.accept()
-            buffer = ""
-
-            with conn:
-                print(f"Connected by {addr}")
-                while True:
-                    data = conn.recv(1024)
-                    if not data:
-                        self.pipe.send(pickle.loads(buffer))
-                        break
-                    buffer = buffer + data
-                conn.close()
+        while True:
+            conn, address = self.socket.accept()
+            process = multiprocessing.Process(
+                target=self.get_message(conn, address, self.pipe), args=(conn, address, self.pipe))
+            process.daemon = True
+            process.start()

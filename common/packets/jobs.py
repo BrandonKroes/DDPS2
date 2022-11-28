@@ -7,3 +7,4 @@ class JobType(Enum):
     STATUS = 2
     REGISTER = 3
     SHUTDOWN = 4
+

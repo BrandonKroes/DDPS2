@@ -22,4 +22,5 @@ class NewJobPacket(AbstractPacket):
     def execute_master_side(self, master):
         # master initiates sending it to the client.
         # after boot the master needs to accept it as done
-        pass
+        # pass
+        print("master side")

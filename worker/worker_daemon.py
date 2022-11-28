@@ -1,5 +1,11 @@
 import multiprocessing
 
+import sys
+import os.path
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
 from common.communication.endpoint_config import EndpointConfig
 from common.communication.sockets.receive_socket import ReceiveSocket
 from common.communication.sockets.send_socket import SendSocket
@@ -29,8 +35,8 @@ class WorkerDaemon(Operator):
         self.conf = YAMLParser.PathToDict(config_path)
         self.blender_path = self.conf['worker']['blender_path']
 
-        self.worker_host = self.conf['master']['host']
-        self.worker_port = self.conf['master']['port']
+        self.worker_host = self.conf['worker']['host']
+        self.worker_port = self.conf['worker']['port']
 
         self.master_host = self.conf['master']['host']
         self.master_port = self.conf['master']['port']
@@ -44,15 +50,20 @@ class WorkerDaemon(Operator):
         self.listen_sockets = [
             multiprocessing.Process(target=ReceiveSocket, args=((incoming_request_pipe, self.conf['worker']),))
         ]
+
         self.outgoing_sockets = [
             multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
         ]
 
+        # start all sockets
+        for x in self.listen_sockets + self.outgoing_sockets:
+            x.start()
+
     def boot(self):
         # Register with master
-        self.outgoing_request.send(
+        self.send_packet(
             EndpointConfig(host=self.master_host, port=self.master_port,
-                           packet=RegisterClient(data_packet=self, packet_id=0, job_type=JobType.REGISTER)))
+                           packet=RegisterClient(data_packet=self.conf, packet_id=0, job_type=JobType.REGISTER)))
 
     def execute_new_job(self):
         self.actively_working = True
@@ -88,8 +99,7 @@ class WorkerDaemon(Operator):
         jb.execute()
         self.actively_working = False
 
-
-if __name__ == "__main__":
-    wd = WorkerDaemon()
-    wd.boot()
-    wd.main()
+    def shutdown(self):
+        self.outgoing_request.close()
+        self.incoming_request.close()
+        quit()

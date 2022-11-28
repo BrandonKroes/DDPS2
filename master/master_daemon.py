@@ -8,7 +8,7 @@
 # reschedule
 # failsafe
 import multiprocessing
-
+import sys
 from common.communication.sockets.receive_socket import ReceiveSocket
 from common.communication.sockets.send_socket import SendSocket
 from common.operator import *
@@ -41,22 +41,27 @@ class MasterDaemon(Operator):
         for x in self.listen_sockets + self.outgoing_sockets:
             x.start()
 
-    def check_listen_sockets(self):
-        to_process = []
+    def check_listen_sockets(self) -> [AbstractPacket]:
+        to_process: [AbstractPacket] = []
         for listen_socket in self.listening_pipes:
             if listen_socket.poll():
-                to_process.append(listen_socket.recv())
+                to_process.append(listen_socket.recv().packet)
         return to_process
 
     def process_packet_operation(self, packet: AbstractPacket):
         packet.execute_master_side(self)
 
+    def send_packet(self, endpoint):
+        self.outgoing_request.send(endpoint)
+
     def main(self):
         while self.active:
             operations = self.check_listen_sockets()
-            for operation in operations:
-                self.process_packet_operation(operation)
+            if len(operations) > 0:
+                for operation in operations:
+                    operation.print()
+                    self.process_packet_operation(operation)
 
-
-if __name__ == "__main__":
-    MasterDaemon("../config/conf.yaml")
+    def shutdown(self):
+        print("Goodbye!")
+        sys.exit()

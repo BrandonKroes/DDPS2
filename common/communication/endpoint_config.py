@@ -13,4 +13,4 @@ class EndpointConfig:
         self.port = port
         self.host = host
         self.packet = packet
-        self.connection_type = connection_type
+        self.connection_type = connection_type._value_
