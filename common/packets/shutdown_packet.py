@@ -1,5 +1,5 @@
 from common.packets.abstract_packet import AbstractPacket
-from common.packets.jobs import JobType
+from common.packets.jobtype import JobType
 
 
 class ShutdownPacket(AbstractPacket):
@@ -16,5 +16,4 @@ class ShutdownPacket(AbstractPacket):
         # master initiates sending it to the client.
         # after boot the master needs to accept it as done
         # pass
-        print("master side")
         master.shutdown()

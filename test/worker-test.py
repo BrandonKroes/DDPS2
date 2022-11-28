@@ -4,7 +4,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-from common.packets.jobs import JobType
+from common.packets.jobtype import JobType
 from common.packets.new_job_packet import NewJobPacket
 from worker.worker_daemon import WorkerDaemon
 
@@ -17,4 +17,4 @@ njp = NewJobPacket(packet_id="1", job_type=JobType.RENDER,
 wd = WorkerDaemon("../config/conf.yaml")
 # wd.add_scheduled_job(njp)
 wd.boot()
-#wd.main()
+wd.main()

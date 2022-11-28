@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 from common.operator import Operator
+from common.packets.jobtype import JobType
 
 if TYPE_CHECKING:
     from worker.worker_daemon import WorkerDaemon
@@ -13,7 +14,7 @@ class AbstractPacket(ABC):
     packet_id = ""
     data_packet = ""
 
-    def __init__(self, packet_id, job_type, data_packet):
+    def __init__(self, packet_id, job_type: 'JobType', data_packet):
         self.packet_id = packet_id
         self.job_type = job_type
         self.data_packet = data_packet

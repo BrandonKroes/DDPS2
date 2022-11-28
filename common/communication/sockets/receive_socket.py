@@ -20,6 +20,7 @@ class ReceiveSocket:
         self.main()
 
     def setup_socket(self):
+        # TODO: Let the OS pick a port: https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
         self.socket.bind((self.host, self.port))
         self.socket.listen(1)
 

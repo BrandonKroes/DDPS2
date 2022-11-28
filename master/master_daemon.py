@@ -13,7 +13,10 @@ from common.communication.sockets.receive_socket import ReceiveSocket
 from common.communication.sockets.send_socket import SendSocket
 from common.operator import *
 from common.packets.abstract_packet import AbstractPacket
+from common.packets.jobtype import JobType
 from common.parser.yaml_parser import YAMLParser
+from master.operations.blender_operation import BlenderOperation
+from master.operations.operation_manager import OperationManager
 
 
 class MasterDaemon(Operator):
@@ -25,6 +28,8 @@ class MasterDaemon(Operator):
         super().__init__(OperatorTypes.MASTER)
         self.conf = YAMLParser.PathToDict(config_path)
         self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
+
+        self.operations_manager = OperationManager()
 
         self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
 
@@ -49,7 +54,10 @@ class MasterDaemon(Operator):
         return to_process
 
     def process_packet_operation(self, packet: AbstractPacket):
-        packet.execute_master_side(self)
+        if packet.job_type == JobType.OPERATION:
+            self.operations_manager.instantiate_job(data_packet=packet, master=self)
+        else:
+            packet.execute_master_side(self)
 
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)
@@ -59,8 +67,12 @@ class MasterDaemon(Operator):
             operations = self.check_listen_sockets()
             if len(operations) > 0:
                 for operation in operations:
-                    operation.print()
+                    try:
+                        operation.print()
+                    except TypeError:
+                        print("Type lacks a print function")
                     self.process_packet_operation(operation)
+            self.operations_manager.main(self)
 
     def shutdown(self):
         print("Goodbye!")

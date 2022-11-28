@@ -1,5 +1,7 @@
 from common.communication.endpoint_config import EndpointConfig
 from common.packets.abstract_packet import AbstractPacket
+from common.packets.jobtype import JobType
+from common.packets.worker_id_packet import WorkerIDPacket
 from master.master_daemon import MasterDaemon
 
 
@@ -15,9 +17,10 @@ class RegisterClient(AbstractPacket):
         master.workers.append(self.get_data_packet())
 
         print("Added new worker, workerID = " + str(worker_id))
+
         master.send_packet(
             EndpointConfig(host=self.get_data_packet()['worker']['host'],
                            port=self.get_data_packet()['worker']['port'],
-                           packet=worker_id))
+                           packet=WorkerIDPacket(0, JobType.REGISTER, worker_id)))
     # except Exception:
     #    print("Exception with packet_id " + str(self.packet_id))

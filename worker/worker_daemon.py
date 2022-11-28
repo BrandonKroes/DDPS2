@@ -11,8 +11,8 @@ from common.communication.sockets.receive_socket import ReceiveSocket
 from common.communication.sockets.send_socket import SendSocket
 from common.operator import Operator, OperatorTypes
 from common.packets.abstract_packet import AbstractPacket
-from common.packets.jobs import JobType
-from common.packets.register_client import RegisterClient
+from common.packets.jobtype import JobType
+from common.packets.register_client_packet import RegisterClient
 from common.parser.yaml_parser import YAMLParser
 
 from worker.tasks.task_blender import TaskBlender as Blender
@@ -34,7 +34,7 @@ class WorkerDaemon(Operator):
         super().__init__(OperatorTypes.WORKER)
         self.conf = YAMLParser.PathToDict(config_path)
         self.blender_path = self.conf['worker']['blender_path']
-
+        self.worker_id = 0
         self.worker_host = self.conf['worker']['host']
         self.worker_port = self.conf['worker']['port']
 
@@ -86,18 +86,33 @@ class WorkerDaemon(Operator):
     def main(self):
         while True:
             # update incoming sockets
-            self.check_if_active_processes_done()
-            if self.not_performing_job_but_job_queued():
+            # self.check_if_active_processes_done()
+            # if self.not_performing_job_but_job_queued():
+            if len(self.scheduled_jobs) > 0:
                 self.execute_new_job()
+
+            operations = self.check_listen_sockets()
+
+            if len(operations) > 0:
+                print("received new job")
+                for operation in operations:
+                    self.add_scheduled_job(operation)
+
+            # queue incoming jobs for schedule
+
+    def check_listen_sockets(self) -> [AbstractPacket]:
+        to_process: [AbstractPacket] = []
+        for listen_socket in self.listening_pipes:
+            if listen_socket.poll():
+                ap = listen_socket.recv()
+                print(ap)
+                to_process.append(ap.packet)
+        return to_process
 
     def add_scheduled_job(self, packet: AbstractPacket):
         self.scheduled_jobs.append(packet)
-
-    def execute_render(self, job_content):
-        job_content['blender_path'] = self.blender_path
-        jb = Blender(**job_content)
-        jb.execute()
-        self.actively_working = False
+        print(self.scheduled_jobs)
+        return
 
     def shutdown(self):
         self.outgoing_request.close()
