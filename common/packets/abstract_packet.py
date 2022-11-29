@@ -1,10 +1,11 @@
 from abc import ABC
 from typing import TYPE_CHECKING
-from common.packets.job_type import JobType
+from .job_type import JobType as JobType
+
 
 if TYPE_CHECKING:
-    from DaemonOperators.worker_daemon import WorkerDaemon
-    from DaemonOperators.master_daemon import MasterDaemon
+    from daemons.worker_daemon import WorkerDaemon
+    from daemons.master_daemon import MasterDaemon
 
 
 class AbstractPacket(ABC):

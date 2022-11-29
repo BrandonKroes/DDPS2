@@ -1,5 +1,6 @@
 from common.communication import EndpointConfig
-from common.packets import *
+from common.packets import AbstractPacket, WorkerIDPacket
+from .job_type import JobType
 
 
 class RegisterClient(AbstractPacket):

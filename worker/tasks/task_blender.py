@@ -34,9 +34,9 @@ class TaskBlender(AbstractTask):
             return print("Unset value is supplied. blender_file_path, start_frame, stop_frame and engine are mandatory")
 
         extra_args = []
-        if self.conf.get('engine') is "CYCLES" and self.conf.get('cycles_device') is not "undefined":
+        if self.conf.get('engine') == "CYCLES" and self.conf.get('cycles_device') != "undefined":
             extra_args = ["--cycles-device " + self.conf.get('cycles_device')]
-        
+
         args = [
             ' --background',  # Setting Blender to background/headless config
             self.blender_file_path,

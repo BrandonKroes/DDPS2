@@ -20,4 +20,4 @@ class OperatorDaemon(ABC):
 # file management
 # user input
 # reschedule
-# failsafe\
+# failsafe

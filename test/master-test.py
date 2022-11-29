@@ -3,10 +3,11 @@ import os.path
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from daemons import MasterDaemon
+from common.packets import ShutdownPacket, JobType
 
-from common.packets.job_type import JobType
-from common.packets.shutdown_packet import ShutdownPacket
-from DaemonOperators.master_daemon import MasterDaemon
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 njp = ShutdownPacket(packet_id="1", job_type=JobType.RENDER,
                      data_packet={

@@ -2,7 +2,7 @@ import click
 import sys
 import os.path
 
-from DaemonOperators import WorkerDaemon, MasterDaemon
+from daemons import WorkerDaemon, MasterDaemon
 
 
 @click.command()

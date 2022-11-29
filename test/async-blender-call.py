@@ -3,11 +3,10 @@ import os.path
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from common.packets import NewOperationPacket, JobType
+from master.operations import BlenderOperation
+from daemons import WorkerDaemon
 
-from master.operations.blender_operation import BlenderOperation
-
-import common.packets
-import DaemonOperators.
 njp = BlenderOperation(1, data_packet={
     'blender_file_path': '/home/brand/lu/ddps/assignment2/example/example.blend',
     'start_frame': 1, 'stop_frame': 4,

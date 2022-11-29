@@ -1,11 +1,11 @@
 import multiprocessing
 import sys
 
-from DaemonOperators import OperatorDaemon, OperatorTypes
+from daemons import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket
 from common.packets import JobType
 from common.parser import YAMLParser
-from master import OperationManager
+from master.operations import OperationManager
 
 
 class MasterDaemon(OperatorDaemon):
