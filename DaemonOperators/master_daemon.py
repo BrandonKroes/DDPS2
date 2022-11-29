@@ -1,25 +1,14 @@
-# new clients
-# new tasks
-# status
-# merging
-# assigning tasks
-# file management
-# user input
-# reschedule
-# failsafe
 import multiprocessing
 import sys
-from common.communication.sockets.receive_socket import ReceiveSocket
-from common.communication.sockets.send_socket import SendSocket
-from common.operator import *
-from common.packets.abstract_packet import AbstractPacket
+
+from DaemonOperators import OperatorDaemon, OperatorTypes
+from common.communication import ReceiveSocket, SendSocket
 from common.packets.jobtype import JobType
 from common.parser.yaml_parser import YAMLParser
-from master.operations.blender_operation import BlenderOperation
 from master.operations.operation_manager import OperationManager
 
 
-class MasterDaemon(Operator):
+class MasterDaemon(OperatorDaemon):
     active = True
     cron = []  # time sensitive operations
     workers = []
@@ -46,14 +35,14 @@ class MasterDaemon(Operator):
         for x in self.listen_sockets + self.outgoing_sockets:
             x.start()
 
-    def check_listen_sockets(self) -> [AbstractPacket]:
-        to_process: [AbstractPacket] = []
+    def check_listen_sockets(self) -> ['AbstractPacket']:
+        to_process: ['AbstractPacket'] = []
         for listen_socket in self.listening_pipes:
             if listen_socket.poll():
                 to_process.append(listen_socket.recv().packet)
         return to_process
 
-    def process_packet_operation(self, packet: AbstractPacket):
+    def process_packet_operation(self, packet: 'AbstractPacket'):
         if packet.job_type == JobType.OPERATION:
             self.operations_manager.instantiate_job(data_packet=packet, master=self)
         else:

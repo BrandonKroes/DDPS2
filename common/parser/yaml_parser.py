@@ -14,11 +14,18 @@ class YAMLParser:
             f = open(self.path, encoding='utf-8')
             self.data = yaml.load(f, Loader=yaml.FullLoader)
             # perform file operations
-        finally:
+
             f.close()
+        except FileNotFoundError:
+            print(f"Tried to open file {self.path}, but unable to find the file.")
+            exit(1)
+        except IsADirectoryError:
+            print(f'Directory given instead of a file {self.path}')
+            exit(1)
 
     @staticmethod
     def DictToConfiguration(d):
+        # TODO: Make output folder dynamic
         with open('../../config/conf.yml', 'w+') as outfile:
             yaml.dump(d, outfile, default_flow_style=False)
 

@@ -1,27 +1,39 @@
+from abc import ABC
+from enum import Enum
 import multiprocessing
 
-import sys
-import os.path
-
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
-from common.communication.endpoint_config import EndpointConfig
 from common.communication.sockets.receive_socket import ReceiveSocket
 from common.communication.sockets.send_socket import SendSocket
-from common.operator import Operator, OperatorTypes
-from common.packets.abstract_packet import AbstractPacket
 from common.packets.jobtype import JobType
-from common.packets.register_client_packet import RegisterClient
 from common.parser.yaml_parser import YAMLParser
-
-from worker.tasks.task_blender import TaskBlender as Blender
-from multiprocessing import Process
+from master.operations.operation_manager import OperationManager
 
 
-class WorkerDaemon(Operator):
+class OperatorTypes(Enum):
+    MASTER = "master"
+    WORKER = "worker"
+
+
+class OperatorDaemon(ABC):
+
+    def __init__(self, operator_type: OperatorTypes):
+        self.operatorType = operator_type
+
+
+# new clients
+# new tasks
+# status
+# merging
+# assigning tasks
+# file management
+# user input
+# reschedule
+# failsafe\\
+
+
+
+class WorkerDaemon(OperatorDaemon):
     blender_path = ""
-    output_folder = "/home/brand/lu/ddps/assignment2/example/"
     active_packet = None
     actively_working = False
     activated = False
@@ -100,8 +112,8 @@ class WorkerDaemon(Operator):
 
             # queue incoming jobs for schedule
 
-    def check_listen_sockets(self) -> [AbstractPacket]:
-        to_process: [AbstractPacket] = []
+    def check_listen_sockets(self) -> ['AbstractPacket']:
+        to_process: ['AbstractPacket'] = []
         for listen_socket in self.listening_pipes:
             if listen_socket.poll():
                 ap = listen_socket.recv()
@@ -109,7 +121,7 @@ class WorkerDaemon(Operator):
                 to_process.append(ap.packet)
         return to_process
 
-    def add_scheduled_job(self, packet: AbstractPacket):
+    def add_scheduled_job(self, packet: 'AbstractPacket'):
         self.scheduled_jobs.append(packet)
         print(self.scheduled_jobs)
         return

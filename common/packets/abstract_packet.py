@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import TYPE_CHECKING
-from common.operator import Operator
 from common.packets.jobtype import JobType
 
 if TYPE_CHECKING:
-    from worker.worker_daemon import WorkerDaemon
-    from master.master_daemon import MasterDaemon
+    from DaemonOperators.worker_daemon import WorkerDaemon
+    from DaemonOperators.master_daemon import MasterDaemon
 
 
 class AbstractPacket(ABC):

@@ -6,13 +6,8 @@ sys.path.append(
 
 from master.operations.blender_operation import BlenderOperation
 
-
-from common.packets.blender_render_packet import BlenderRenderPacket
-from common.packets.new_operation_packet import NewOperationPacket
-
-from common.packets.jobtype import JobType
-from worker.worker_daemon import WorkerDaemon
-
+import common.packets
+import DaemonOperators.
 njp = BlenderOperation(1, data_packet={
     'blender_file_path': '/home/brand/lu/ddps/assignment2/example/example.blend',
     'start_frame': 1, 'stop_frame': 4,

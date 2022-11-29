@@ -6,7 +6,7 @@ sys.path.append(
 
 from common.packets.jobtype import JobType
 from common.packets.shutdown_packet import ShutdownPacket
-from master.master_daemon import MasterDaemon
+from DaemonOperators.master_daemon import MasterDaemon
 
 njp = ShutdownPacket(packet_id="1", job_type=JobType.RENDER,
                      data_packet={

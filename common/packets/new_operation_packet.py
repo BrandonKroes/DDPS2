@@ -1,7 +1,6 @@
 from common.communication.endpoint_config import EndpointConfig
 from common.packets.abstract_packet import AbstractPacket
-from common.packets.jobtype import JobType
-from worker.worker_daemon import WorkerDaemon
+from DaemonOperators.worker_daemon import WorkerDaemon
 
 
 class NewOperationPacket(AbstractPacket):
