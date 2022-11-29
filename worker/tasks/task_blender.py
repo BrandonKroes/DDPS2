@@ -25,6 +25,7 @@ class TaskBlender(AbstractTask):
         for key, val in self.conf.items():
             self.__dict__[key] = kwargs.get(key, val)
 
+
     def is_finished(self):
         return self.finished
 
@@ -34,8 +35,8 @@ class TaskBlender(AbstractTask):
             return print("Unset value is supplied. blender_file_path, start_frame, stop_frame and engine are mandatory")
 
         extra_args = []
-        if self.conf.get('engine') == "CYCLES" and self.conf.get('cycles_device') != "undefined":
-            extra_args = ["--cycles-device " + self.conf.get('cycles_device')]
+        if self.engine == "CYCLES" and self.cycles_device != "undefined":
+            extra_args = [" -- --cycles-device " + self.cycles_device]
 
         args = [
             ' --background',  # Setting Blender to background/headless config
@@ -45,8 +46,8 @@ class TaskBlender(AbstractTask):
             '--frame-end', str(self.stop_frame),
             '--render-output', str(self.output_folder)
         ]
-        extra_args = extra_args + [' -a']  # Render the whole animation using all the settings saved in the blend-file.
-
+        extra_args = [' -a'] + extra_args   # Render the whole animation using all the settings saved in the blend-file.
+        print(self.blender_path + " ".join(args) + " ".join(extra_args))
         self.running = True
         self.render_process = subprocess
         self.render_process.call([self.blender_path + " ".join(args) + " ".join(extra_args)], shell=True, stdout=False)

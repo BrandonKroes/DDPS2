@@ -10,10 +10,15 @@ class BlenderRenderPacket(AbstractPacket):
     def execute_worker_side(self, worker):
         print('started')
         self.data_packet['blender_path'] = worker.blender_path
+        try:
+            self.data_packet['cycles_device'] = worker.conf['worker']['cycles_device']
+        except KeyError:
+            self.data_packet['cycles_device'] = "undefined"
         jb = TaskBlender(**self.data_packet)
         jb.execute()
-        print('done')
-        worker.actively_working = False
+        #print('done')
+        #worker.actively_working = False
 
-    def execute_master_side(self, master):
-        pass
+
+def execute_master_side(self, master):
+    pass
