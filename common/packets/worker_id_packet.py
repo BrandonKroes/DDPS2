@@ -1,4 +1,4 @@
-from common.packets.abstract_packet import AbstractPacket
+from common.packets import AbstractPacket
 
 
 class WorkerIDPacket(AbstractPacket):

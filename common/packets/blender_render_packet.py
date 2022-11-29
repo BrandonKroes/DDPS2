@@ -1,4 +1,4 @@
-from common.packets.abstract_packet import AbstractPacket
+from common.packets import AbstractPacket
 from worker.tasks.task_blender import TaskBlender
 
 

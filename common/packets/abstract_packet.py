@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from abc import ABC
 from typing import TYPE_CHECKING
-from common.packets.jobtype import JobType
+from common.packets.job_type import JobType
 
 if TYPE_CHECKING:
     from DaemonOperators.worker_daemon import WorkerDaemon

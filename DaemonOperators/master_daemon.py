@@ -3,9 +3,9 @@ import sys
 
 from DaemonOperators import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket
-from common.packets.jobtype import JobType
-from common.parser.yaml_parser import YAMLParser
-from master.operations.operation_manager import OperationManager
+from common.packets import JobType
+from common.parser import YAMLParser
+from master import OperationManager
 
 
 class MasterDaemon(OperatorDaemon):

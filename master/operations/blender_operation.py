@@ -2,7 +2,7 @@ import os
 
 from common.communication.endpoint_config import EndpointConfig
 from common.packets.blender_render_packet import BlenderRenderPacket
-from common.packets.jobtype import JobType
+from common.packets.job_type import JobType
 from common.packets.new_job_packet import NewJobPacket
 from master.classes.cluster_config import ClusterConfiguration
 

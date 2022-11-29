@@ -4,7 +4,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-from common.packets.jobtype import JobType
+from common.packets.job_type import JobType
 from common.packets.shutdown_packet import ShutdownPacket
 from DaemonOperators.master_daemon import MasterDaemon
 

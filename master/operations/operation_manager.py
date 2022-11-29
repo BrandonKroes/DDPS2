@@ -1,4 +1,4 @@
-from common.packets.jobtype import JobType
+from common.packets.job_type import JobType
 from master.operations.blender_operation import BlenderOperation
 
 

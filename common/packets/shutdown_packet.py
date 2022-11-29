@@ -1,5 +1,4 @@
-from common.packets.abstract_packet import AbstractPacket
-from common.packets.jobtype import JobType
+from common.packets import AbstractPacket
 
 
 class ShutdownPacket(AbstractPacket):
