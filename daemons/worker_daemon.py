@@ -54,19 +54,28 @@ class WorkerDaemon(OperatorDaemon):
                            packet=RegisterClient(data_packet=self.conf, packet_id=0, job_type=JobType.REGISTER)))
 
     def execute_new_job(self):
+        print("Performing new job")
         self.actively_working = True
         self.active_packet = self.scheduled_jobs.pop()
         p = Process(target=self.active_packet.execute_worker_side, args=(self,))
         p.start()
-        self.active_processes.append(p)
+        self.active_processes.append((self.active_packet, p))
 
     def not_performing_job_but_job_queued(self):
         return self.actively_working is False and len(self.scheduled_jobs) > 0
 
     def check_if_active_processes_done(self):
-        for active_process in self.active_processes[:]:
-            if active_process.exitcode is 0:
-                self.active_processes.remove(active_process)
+        new_active_processes = []
+        for (k, v) in self.active_processes[:]:
+            if v.exitcode is 0:
+                print("job done")
+                invert_op = getattr(k, "done_worker_side", None)
+                if callable(invert_op):
+                    k.done_worker_side(self)
+
+            else:
+                new_active_processes.append((k, v))
+        self.active_processes = new_active_processes
 
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)
@@ -74,7 +83,7 @@ class WorkerDaemon(OperatorDaemon):
     def main(self):
         while True:
             # update incoming sockets
-            # self.check_if_active_processes_done()
+            self.check_if_active_processes_done()
             # if self.not_performing_job_but_job_queued():
             if len(self.scheduled_jobs) > 0:
                 self.execute_new_job()

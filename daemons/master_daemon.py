@@ -43,10 +43,7 @@ class MasterDaemon(OperatorDaemon):
         return to_process
 
     def process_packet_operation(self, packet: 'AbstractPacket'):
-        if packet.job_type == JobType.OPERATION:
-            self.operations_manager.instantiate_job(data_packet=packet, master=self)
-        else:
-            packet.execute_master_side(self)
+        packet.execute_master_side(self)
 
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)

@@ -3,6 +3,9 @@ from abc import ABC
 
 class AbstractTask(ABC):
 
+    def __init__(self, **kwargs):
+        pass
+
     def execute(self):
         pass
 

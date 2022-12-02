@@ -4,7 +4,7 @@ from worker.tasks import AbstractTask
 
 
 class TaskBlender(AbstractTask):
-    conf = {
+    conf = {  # items to copy
         'blender_path': "unset",
         'blender_file_path': 'unset',
         'start_frame': 'unset',
@@ -22,14 +22,22 @@ class TaskBlender(AbstractTask):
 
     def __init__(self, **kwargs):
         # read config to override at run time.
+        super().__init__(**kwargs)
+        self.blender_path = None
+        self.cycles_device = None
+        self.start_frame = None
+        self.blender_file_path = None
+        self.engine = None
+        self.stop_frame = None
+        self.output_folder = None
+        self.worker = None
         for key, val in self.conf.items():
             self.__dict__[key] = kwargs.get(key, val)
-
 
     def is_finished(self):
         return self.finished
 
-    def execute(self):
+    def execute(self, worker):
         if 'unset' in self.__dict__:
             # TODO: Throw exception
             return print("Unset value is supplied. blender_file_path, start_frame, stop_frame and engine are mandatory")
@@ -46,7 +54,7 @@ class TaskBlender(AbstractTask):
             '--frame-end', str(self.stop_frame),
             '--render-output', str(self.output_folder)
         ]
-        extra_args = [' -a'] + extra_args   # Render the whole animation using all the settings saved in the blend-file.
+        extra_args = [' -a'] + extra_args  # Render the whole animation using all the settings saved in the blend-file.
         print(self.blender_path + " ".join(args) + " ".join(extra_args))
         self.running = True
         self.render_process = subprocess

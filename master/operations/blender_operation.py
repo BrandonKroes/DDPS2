@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from common.communication.endpoint_config import EndpointConfig
 from common.packets.blender_render_packet import BlenderRenderPacket
@@ -33,11 +34,15 @@ class BlenderOperation:
         frames = self.stop_frame - self.start_frame
 
         frames_per_node = self.get_evenly_divided_values(frames, len(nodes))
-
         start_iter_frames = self.start_frame
+
+        packet_count = len(nodes)
+
         for i in range(len(nodes)):
             brp = BlenderRenderPacket(packet_id, job_type=JobType.RENDER,
                                       data_packet={
+                                          'operation_reference': self.operation_id,
+                                          'packet_reference': packet_id,
                                           'blender_file_path': self.blender_file_path,
                                           'start_frame': start_iter_frames,
                                           'stop_frame': start_iter_frames + frames_per_node[i],
@@ -46,10 +51,12 @@ class BlenderOperation:
                                       })
             print(nodes[i]['worker']['host'])
             print(nodes[i]['worker']['port'])
+
             ec = EndpointConfig(host=nodes[i]['worker']['host'], port=nodes[i]['worker']['port'], packet=brp)
             self.packets.append(ec)
             start_iter_frames = start_iter_frames + frames_per_node[i]
             packet_id += 1
+
         self.orchestrated = True
 
     @staticmethod
@@ -58,16 +65,27 @@ class BlenderOperation:
 
     def get_packets(self):
         t_packet = self.packets
-        self.packets = []
         return t_packet
 
-    def process_progress_packet(self, packet):
-        pass
+    def process_progress_packet(self, received_packet):
+        backup_packet = []
+        for packet in self.packets:
+            print(received_packet)
+            if packet.packet.data_packet['packet_reference'] != received_packet['packet_reference']:
+                backup_packet.append(packet)
+        self.packets = backup_packet
+
+        if 0 == len(backup_packet):
+            self.on_cluster_complete()
 
     def print(self):
         print(self.__dict__)
 
     def on_cluster_complete(self):
-        os.system(
-            "ffmpeg -framerate 30 -pattern_type glob -i '" + self.output_path + "*.png' -c:v libx264 -pix_fmt yuv420p " + self.operation_id + ".mp4")
+
+        render_process = subprocess
+        render_process.call(["ffmpeg -nostdin -y -framerate 30 -pattern_type glob -i '" + self.output_path + '/' + str(
+            self.operation_id) + "/*.png' -c:v libx264 -pix_fmt yuv420p " + str(
+            self.operation_id) + ".mp4 > /dev/null 2>&1 < /dev/null "], shell=True, stdout=False)
+
         self.finished = True

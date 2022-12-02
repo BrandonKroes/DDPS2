@@ -3,8 +3,8 @@ from worker.tasks.task_abstract import AbstractTask
 
 class TaskHeartbeat(AbstractTask):
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def execute(self):
         pass
