@@ -10,7 +10,7 @@ class OperatorTypes(Enum):
 class OperatorDaemon(ABC):
 
     def __init__(self, operator_type: OperatorTypes):
-        self.operatorType = operator_type
+        self.operator_type = operator_type
 
 # new clients
 # new tasks

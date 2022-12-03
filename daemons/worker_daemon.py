@@ -1,6 +1,8 @@
 import multiprocessing
 from multiprocessing import Process
 
+from common.cron import AbstractCron
+from common.cron.cron_heart_beat import CronHeartBeat
 from daemons import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket, EndpointConfig
 from common.packets import RegisterClient
@@ -25,7 +27,7 @@ class WorkerDaemon(OperatorDaemon):
         self.worker_id = 0
         self.worker_host = self.conf['worker']['host']
         self.worker_port = self.conf['worker']['port']
-
+        self.cron: [AbstractCron] = []
         self.master_host = self.conf['master']['host']
         self.master_port = self.conf['master']['port']
 
@@ -52,6 +54,7 @@ class WorkerDaemon(OperatorDaemon):
         self.send_packet(
             EndpointConfig(host=self.master_host, port=self.master_port,
                            packet=RegisterClient(data_packet=self.conf, packet_id=0, job_type=JobType.REGISTER)))
+        self.cron.append(CronHeartBeat())
 
     def execute_new_job(self):
         print("Performing new job")
@@ -80,8 +83,13 @@ class WorkerDaemon(OperatorDaemon):
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)
 
+    def check_for_cron(self):
+        for cron_operation in self.cron:
+            cron_operation.cron_time_passed_worker(self)
+
     def main(self):
         while True:
+            self.check_for_cron()
             # update incoming sockets
             self.check_if_active_processes_done()
             # if self.not_performing_job_but_job_queued():
