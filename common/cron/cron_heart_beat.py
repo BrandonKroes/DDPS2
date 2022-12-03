@@ -22,9 +22,8 @@ class CronHeartBeat(AbstractCron):
 
         if self.trigger <= time.time():  # IE: Can we be triggered?
             # if the cron has been triggered by the worker.
-            print("sending alive sign")
             worker.outgoing_request.send(EndpointConfig(host=worker.master_host, port=worker.master_port,
                                                         packet=HeartBeatPacket(packet_id=-1,
-                                                                               data_packet={worker.worker_id},
+                                                                               data_packet=worker.worker_id,
                                                                                job_type=JobType.STATUS)))
             self.schedule()

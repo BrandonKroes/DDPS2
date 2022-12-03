@@ -1,5 +1,6 @@
 from common.packets import AbstractPacket
 from .job_type import JobType as JobType
+import time
 
 
 class HeartBeatPacket(AbstractPacket):
@@ -9,7 +10,11 @@ class HeartBeatPacket(AbstractPacket):
         super().__init__(packet_id, job_type, data_packet)
 
     def execute_master_side(self, master):
-        # master initiates sending it to the client.
-        # after boot the master needs to accept it as done
-        # pass
-        print("heartbeat update")
+        workers = []
+        for (node, status) in master.workers:
+            if status['worker_id'] == self.data_packet:
+                print("matched")
+                status['last_message'] = time.time() + 10
+                status['attempt'] = 0
+            workers.append((node, status))
+        master.workers = workers

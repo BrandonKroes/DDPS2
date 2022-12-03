@@ -1,3 +1,5 @@
+import time
+
 from common.communication import EndpointConfig
 from common.packets import AbstractPacket, WorkerIDPacket
 from .job_type import JobType
@@ -12,7 +14,8 @@ class RegisterClient(AbstractPacket):
         # try:
         worker_id = len(master.workers)
         self.get_data_packet()['worker_id'] = worker_id
-        master.workers.append(self.get_data_packet())
+        master.workers.append(
+            (self.get_data_packet(), dict({'worker_id': worker_id, 'last_message': time.time(), 'attempt': 0})))
 
         print("Added new worker, workerID = " + str(worker_id))
 

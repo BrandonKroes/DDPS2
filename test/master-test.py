@@ -17,5 +17,6 @@ njp = ShutdownPacket(packet_id="1", job_type=JobType.RENDER,
                          'engine': "CYCLES"})
 
 md = MasterDaemon("../config/conf.yaml")
+md.boot()
 # md.process_packet_operation(njp)
 md.main()

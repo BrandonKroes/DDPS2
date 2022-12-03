@@ -1,9 +1,10 @@
 import multiprocessing
 import sys
 
+from common.cron.cron_worker_manager import CronWorkerManager
 from daemons import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket
-from common.packets import JobType
+from common.packets import JobType, AbstractPacket
 from common.parser import YAMLParser
 from master.operations import OperationManager
 
@@ -35,6 +36,13 @@ class MasterDaemon(OperatorDaemon):
         for x in self.listen_sockets + self.outgoing_sockets:
             x.start()
 
+    def boot(self):
+        self.cron.append(CronWorkerManager())
+
+    def check_for_cron(self):
+        for cron_operation in self.cron:
+            cron_operation.cron_time_passed_master(self)
+
     def check_listen_sockets(self) -> ['AbstractPacket']:
         to_process: ['AbstractPacket'] = []
         for listen_socket in self.listening_pipes:
@@ -50,6 +58,8 @@ class MasterDaemon(OperatorDaemon):
 
     def main(self):
         while self.active:
+
+            self.check_for_cron()
             operations = self.check_listen_sockets()
             if len(operations) > 0:
                 for operation in operations:
