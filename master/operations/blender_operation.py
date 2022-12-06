@@ -97,7 +97,7 @@ class BlenderOperation:
 
         self.finished = True
         self.end_time = datetime.datetime.now()
-        self.total_time = self.end_time - self.start_time;
+        self.total_time = self.end_time - self.start_time
         print('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S"))
         print('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S"))
         print('duration: ' + str(self.total_time.total_seconds()))
