@@ -1,5 +1,7 @@
+import datetime
 import os
 import subprocess
+import time
 
 from common.communication.endpoint_config import EndpointConfig
 from common.packets.blender_render_packet import BlenderRenderPacket
@@ -19,6 +21,8 @@ class BlenderOperation:
     capable_nodes = []
     packets = []
     orchestrated = False
+    start_time = ""
+    end_time = ""
 
     def __init__(self, operation_id, data_packet):
         self.operation_id = operation_id
@@ -29,6 +33,9 @@ class BlenderOperation:
         self.output_path = data_packet['output_path']
 
     def orchestrate_cluster(self, nodes):
+
+        self.start_time = datetime.datetime.now()
+
         # TODO: Dynamically assign the workload i.e. a node with an iGPU should get a less work than a node with a A6000
         packet_id = 0
         frames = self.stop_frame - self.start_frame
@@ -89,3 +96,8 @@ class BlenderOperation:
             self.operation_id) + ".mp4 > /dev/null 2>&1 < /dev/null "], shell=True, stdout=False)
 
         self.finished = True
+        self.end_time = datetime.datetime.now()
+        self.total_time = self.end_time - self.start_time;
+        print('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S"))
+        print('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S"))
+        print('duration: ' + str(self.total_time.total_seconds()))

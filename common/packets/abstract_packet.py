@@ -20,7 +20,8 @@ class AbstractPacket(ABC):
         return self.packet_id
 
     def print(self):
-        print("PacketID = " + str(self.packet_id) + " | JobType = " + str(self.job_type.name))
+        if self.job_type is not JobType.STATUS:
+            print("PacketID = " + str(self.packet_id) + " | JobType = " + str(self.job_type.name))
 
     def get_data_packet(self):
         return self.data_packet
