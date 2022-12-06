@@ -21,10 +21,6 @@ class OperationManager:
 
     def operation_callback(self, master, data_packet):
         for operation in self.operations:
-            print("====")
-            print(operation)
-            print(data_packet)
-
             if operation.operation_id == data_packet['operation_reference']:
                 operation.process_progress_packet(data_packet)
 

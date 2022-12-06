@@ -29,7 +29,6 @@ class ReceiveSocket:
     def get_message(self, conn, addr, pipe):
         with conn:
             buffer = b''
-            print(f"Connected by {addr}")
             is_data = True
             while is_data:
                 data = conn.recv(10000)
@@ -46,5 +45,3 @@ class ReceiveSocket:
                 target=self.get_message(conn, address, self.pipe), args=(conn, address, self.pipe))
             process.daemon = True
             process.start()
-
-

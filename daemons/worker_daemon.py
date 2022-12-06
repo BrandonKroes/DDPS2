@@ -1,6 +1,12 @@
 import multiprocessing
 from multiprocessing import Process
 
+import sys
+import os.path
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
 from common.cron import AbstractCron
 from common.cron.cron_heart_beat import CronHeartBeat
 from daemons import OperatorDaemon, OperatorTypes

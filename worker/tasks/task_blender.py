@@ -1,4 +1,13 @@
 import subprocess
+import sys
+import os.path
+import sys
+import os.path
+
+from common.communication import EndpointConfig
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 from worker.tasks import AbstractTask
 
@@ -31,6 +40,8 @@ class TaskBlender(AbstractTask):
         self.stop_frame = None
         self.output_folder = None
         self.worker = None
+        self.frame_progress = False
+        self.frame_count = 0
         for key, val in self.conf.items():
             self.__dict__[key] = kwargs.get(key, val)
 
@@ -55,11 +66,48 @@ class TaskBlender(AbstractTask):
             '--render-output', str(self.output_folder)
         ]
         extra_args = [' -a'] + extra_args  # Render the whole animation using all the settings saved in the blend-file.
-        print(self.blender_path + " ".join(args) + " ".join(extra_args))
         self.running = True
         self.render_process = subprocess
-        self.render_process.call([self.blender_path + " ".join(args) + " ".join(extra_args)], shell=True, stdout=False)
+        running_process = self.render_process.Popen([self.blender_path + " ".join(args) + " ".join(extra_args)],
+                                                    shell=True,
+                                                    stdout=subprocess.PIPE, bufsize=1)
+        while running_process.poll() is None:
+            line = running_process.stdout.readline()
+            self.process_line(line.decode("utf-8"))
+            if self.frame_progress is True:
+                self.frame_progress = False
+                from common.packets import JobType
+                from common.packets import PrintPacket
+                print("Frame finished :" + str(self.frame_count))
+                worker.send_packet(
+                    EndpointConfig(host=worker.master_host, port=worker.master_port,
+                                   packet=PrintPacket(packet_id=1, job_type=JobType.OPERATION,
+                                                      data_packet={'worker_id': worker.worker_id,
+                                                                   'frame': self.frame_count})))
+        print("job finished")
         self.finished = True
+
+    def process_line(self, line):
+        # Example line: Fra:1 Mem:163.57M (Peak 163.59M)
+        # search for digit
+        if len(line) > 10:
+            buffer = ""
+
+            prepend = line[0:4]
+
+            if prepend == "Fra:":  # if it is a frame
+                print(line)
+                for c in line[4:-1]:
+                    from curses.ascii import isdigit
+                    if isdigit(c):
+                        print(c)
+                        buffer += c
+                    else:
+                        break
+
+                if self.frame_count < int(buffer):
+                    self.frame_progress = True
+                    self.frame_count = int(buffer)
 
     def render_status(self):
         if self.init:

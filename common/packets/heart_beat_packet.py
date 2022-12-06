@@ -13,7 +13,6 @@ class HeartBeatPacket(AbstractPacket):
         workers = []
         for (node, status) in master.workers:
             if status['worker_id'] == self.data_packet:
-                print("matched")
                 status['last_message'] = time.time() + 10
                 status['attempt'] = 0
             workers.append((node, status))

@@ -12,10 +12,12 @@ class PrintPacket(AbstractPacket):
         # master initiates sending it to the client.
         # after boot the master needs to accept it as done
         # pass
-        print(worker.__dict__)
+        print(self.data_packet)
+        # print(worker.__dict__)
 
     def execute_master_side(self, master):
         # master initiates sending it to the client.
         # after boot the master needs to accept it as done
         # pass
-        print(master.__dict__)
+        print(self.data_packet)
+        # print(master.__dict__)

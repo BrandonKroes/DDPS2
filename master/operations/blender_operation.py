@@ -49,10 +49,10 @@ class BlenderOperation:
                                           'output_folder': self.output_path + str(self.operation_id) + "/",
                                           'engine': self.engine
                                       })
-            print(nodes[i]['worker']['host'])
-            print(nodes[i]['worker']['port'])
 
-            ec = EndpointConfig(host=nodes[i]['worker']['host'], port=nodes[i]['worker']['port'], packet=brp)
+            ec = EndpointConfig(host=nodes[0][i]['worker']['host'],
+                                port=nodes[0][i]['worker']['port'],
+                                packet=brp)
             self.packets.append(ec)
             start_iter_frames = start_iter_frames + frames_per_node[i]
             packet_id += 1

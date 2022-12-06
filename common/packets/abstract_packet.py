@@ -2,7 +2,6 @@ from abc import ABC
 from typing import TYPE_CHECKING
 from .job_type import JobType as JobType
 
-
 if TYPE_CHECKING:
     from daemons.worker_daemon import WorkerDaemon
     from daemons.master_daemon import MasterDaemon

@@ -1,4 +1,3 @@
-
 class ClusterConfiguration:
     # Details which nodes there are
     nodes = []

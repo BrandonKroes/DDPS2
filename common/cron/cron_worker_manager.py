@@ -19,9 +19,7 @@ class CronWorkerManager(AbstractCron):
     def cron_time_passed_master(self, master):
         workers = []
         if self.timer < time.time():
-            print("timer passed")
             for (node, status) in master.workers:
-                print(status)
                 if (status['last_message'] + self.trigger) < time.time():
                     if status['attempt'] > self.attempt_failure:
                         print("Bad news: Node " + str(node['worker_id']) + " has died.")
