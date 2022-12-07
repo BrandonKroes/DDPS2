@@ -33,6 +33,7 @@ master=${node_list[0]}
 worker=${node_list[@]:1}
 echo "master is "$master
 echo "worker is "$worker
+blender_path="/local/$USER/blender-3.3.1-linux-x64"
 repo="https://github.com/BrandonKroes/DDPS2.git"
 
 rm -rf /var/scratch/$USER/blender-3.3.1-linux-x64
@@ -72,14 +73,14 @@ ssh -T $n "nohup git clone https://github.com/BrandonKroes/DDPS2.git /local/$USE
 
 echo "writing config for worker $n"
 # setting up a basic config
-ssh -T $n `echo $"worker:" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $" blender_path: '/local/$USER/blender-3.3.1-linux-x64'" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $" host:'$n'" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $" port:$worker_port" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $" cycles_device:'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml`
-ssh -T $n `echo $" host:'$master'" >> /local/$USER/DDPS2/config/conf.yaml1`
-ssh -T $n `echo $" port:$master_port" >> /local/$USER/DDPS2/config/conf.yaml`
+ssh -T $n 'echo $"worker:" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" blender_path: '$blender_path'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" host:'$n'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" port:$worker_port" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" cycles_device:'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" host:'$master'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" port:$master_port" >> /local/$USER/DDPS2/config/conf.yaml'
 
 #echo "starting node $n as worker"
 #ssh -T $n "nohup ./local/$USER/DDPS2/test/worker-test.py > debug.log &"
