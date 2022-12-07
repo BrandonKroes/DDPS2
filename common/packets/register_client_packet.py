@@ -22,6 +22,6 @@ class RegisterClient(AbstractPacket):
         master.send_packet(
             EndpointConfig(host=self.get_data_packet()['worker']['host'],
                            port=self.get_data_packet()['worker']['port'],
-                           packet=WorkerIDPacket(0, JobType.REGISTER, worker_id)))
+                           packet=WorkerIDPacket(packet_id=0, job_type=JobType.REGISTER, data_packet=worker_id)))
     # except Exception:
     #    print("Exception with packet_id " + str(self.packet_id))

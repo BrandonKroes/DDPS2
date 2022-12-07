@@ -1,7 +1,7 @@
 worker:
   blender_path: "/home/brand/lu/ddps/blender-3.3.1-linux-x64/blender"
   host: "127.0.0.1"
-  port: 37986
+  port: 22144
   cycles_device: "CUDA"
 master:
   host: "127.0.0.1"

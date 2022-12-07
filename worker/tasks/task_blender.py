@@ -22,6 +22,7 @@ class TaskBlender(AbstractTask):
         'cycles_device': 'undefined',
         'job_id': 'undefined',
         'output_folder': 'unset',
+        'operation_reference': 'unset',
     }
     finished = False
     running = False
@@ -42,6 +43,8 @@ class TaskBlender(AbstractTask):
         self.worker = None
         self.frame_progress = False
         self.frame_count = 0
+        self.first_frame = True
+
         for key, val in self.conf.items():
             self.__dict__[key] = kwargs.get(key, val)
 
@@ -74,18 +77,22 @@ class TaskBlender(AbstractTask):
         while running_process.poll() is None:
             line = running_process.stdout.readline()
             self.process_line(line.decode("utf-8"))
-            if self.frame_progress is True:
+            if self.first_frame:
+                self.frame_progress = False
+                self.first_frame = False
+            elif self.frame_progress is True:
                 self.frame_progress = False
                 from common.packets import JobType
                 from common.packets import PrintPacket
                 print("Frame finished :" + str(self.frame_count))
+                print(self)
                 worker.send_packet(
                     EndpointConfig(host=worker.master_host, port=worker.master_port,
                                    packet=PrintPacket(packet_id=1, job_type=JobType.OPERATION,
-                                                      data_packet={'worker_id': worker.worker_id,
-                                                                   'frame': self.frame_count})))
-        print("job finished")
-        self.finished = True
+                                                      data_packet={'operation_reference': self.operation_reference,
+                                                                   'worker_id': worker.worker_id,
+                                                                   'packet_reference': self.frame_count})))
+            self.finished = True
 
     def process_line(self, line):
         # Example line: Fra:1 Mem:163.57M (Peak 163.59M)
@@ -112,7 +119,8 @@ class TaskBlender(AbstractTask):
     def render_status(self):
         if self.init:
             return "Starting blender render."
-        return "At frame %1 from the %2. Using Engine %3".format(str(self.progress), str(self.stop_frame), self.engine)
+        return "At frame %1 from the %2. Using Engine %3".format(str(self.progress), str(self.stop_frame),
+                                                                 self.engine)
 
     @staticmethod
     def is_capable():

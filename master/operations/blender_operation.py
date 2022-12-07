@@ -57,14 +57,41 @@ class BlenderOperation:
                                           'engine': self.engine
                                       })
 
-            ec = EndpointConfig(host=nodes[0][i]['worker']['host'],
-                                port=nodes[0][i]['worker']['port'],
+            print(nodes[i][0])
+            ec = EndpointConfig(host=nodes[i][0]['worker']['host'],
+                                port=nodes[i][0]['worker']['port'],
                                 packet=brp)
             self.packets.append(ec)
             start_iter_frames = start_iter_frames + frames_per_node[i]
             packet_id += 1
 
         self.orchestrated = True
+
+    def node_failure(self, master, failure_node):
+        # check which jobs the node had
+        to_be_redistributed: EndpointConfig = None
+        packets = []
+        for endpoint in self.packets:
+            if endpoint.host == failure_node['worker']['host'] and endpoint.port == failure_node['worker']['port']:
+                to_be_redistributed = endpoint
+            else:
+                packets.append(endpoint)
+
+        if to_be_redistributed is None:
+            # this operation had nothing to do with this task!
+            return
+
+        # TODO: Dynamically decide which node should be picked!
+        default_node = master.nodes[0]
+        node_info = default_node[0]
+
+        # Redirecting the packet to a different node!
+        to_be_redistributed.host = node_info['worker']['host']
+        to_be_redistributed.port = node_info['worker']['port']
+
+        master.send_packet(to_be_redistributed)
+        packets.append(to_be_redistributed)
+        self.packets = packets
 
     @staticmethod
     def get_evenly_divided_values(value_to_be_distributed, times):

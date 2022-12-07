@@ -15,14 +15,22 @@ class SendSocket:
         self.main()
 
     def send_message(self, packet: EndpointConfig):
-        try:
-            s = socket.socket(packet.connection_type[0], packet.connection_type[1])
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.connect((packet.host, packet.port))
-            s.sendall(pickle.dumps(packet), )
-            s.close()
-        except ConnectionRefusedError:
-            print("port error")
+        count = 0
+        while True:
+            try:
+                s = socket.socket(packet.connection_type[0], packet.connection_type[1])
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.connect((packet.host, packet.port))
+                s.sendall(pickle.dumps(packet), )
+                s.close()
+            except ConnectionRefusedError:
+                print("port error")
+                from time import sleep
+                sleep(10)
+                count += 1
+                if count > 5:
+                    exit(-1)
+            break
         return
 
     def main(self):

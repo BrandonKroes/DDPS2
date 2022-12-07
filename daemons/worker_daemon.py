@@ -30,7 +30,7 @@ class WorkerDaemon(OperatorDaemon):
         super().__init__(OperatorTypes.WORKER)
         self.conf = YAMLParser.PathToDict(config_path)
         self.blender_path = self.conf['worker']['blender_path']
-        self.worker_id = 0
+        self.worker_id = None
         self.worker_host = self.conf['worker']['host']
         self.worker_port = self.conf['worker']['port']
         self.cron: [AbstractCron] = []
@@ -38,7 +38,7 @@ class WorkerDaemon(OperatorDaemon):
         self.master_port = self.conf['master']['port']
 
         self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
-
+        self.worker_modifier, self.worker_modifier_pipe = multiprocessing.Pipe(duplex=True)
         self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
 
         self.listening_pipes = [self.incoming_request]
@@ -52,8 +52,8 @@ class WorkerDaemon(OperatorDaemon):
         ]
 
         # start all sockets
-        for x in self.listen_sockets + self.outgoing_sockets:
-            x.start()
+        for l_socket in self.listen_sockets + self.outgoing_sockets:
+            l_socket.start()
 
     def boot(self):
         # Register with master
@@ -66,9 +66,13 @@ class WorkerDaemon(OperatorDaemon):
         print("Performing new job")
         self.actively_working = True
         self.active_packet = self.scheduled_jobs.pop()
-        p = Process(target=self.active_packet.execute_worker_side, args=(self,))
-        p.start()
-        self.active_processes.append((self.active_packet, p))
+
+        if self.active_packet.override:
+            self.active_packet.execute_worker_side(self)
+        else:
+            p = Process(target=self.active_packet.execute_worker_side, args=(self,))
+            p.start()
+            self.active_processes.append((self.active_packet, p))
 
     def not_performing_job_but_job_queued(self):
         return self.actively_working is False and len(self.scheduled_jobs) > 0
@@ -76,7 +80,7 @@ class WorkerDaemon(OperatorDaemon):
     def check_if_active_processes_done(self):
         new_active_processes = []
         for (k, v) in self.active_processes[:]:
-            if v.exitcode is 0:
+            if v.exitcode == 0:
                 print("job done")
                 invert_op = getattr(k, "done_worker_side", None)
                 if callable(invert_op):
@@ -94,6 +98,7 @@ class WorkerDaemon(OperatorDaemon):
             cron_operation.cron_time_passed_worker(self)
 
     def main(self):
+        # TODO: KeyboardInterrupt to shutdown systems!
         while True:
             self.check_for_cron()
             # update incoming sockets
@@ -101,15 +106,15 @@ class WorkerDaemon(OperatorDaemon):
             # if self.not_performing_job_but_job_queued():
             if len(self.scheduled_jobs) > 0:
                 self.execute_new_job()
-
             operations = self.check_listen_sockets()
-
             if len(operations) > 0:
-                print("received new job")
                 for operation in operations:
                     self.add_scheduled_job(operation)
 
             # queue incoming jobs for schedule
+
+    def send_packet_to_master(self, packet):
+        self.send_packet(EndpointConfig(packet=packet, host=self.master_host, port=self.master_port))
 
     def check_listen_sockets(self) -> ['AbstractPacket']:
         to_process: ['AbstractPacket'] = []
@@ -117,6 +122,8 @@ class WorkerDaemon(OperatorDaemon):
             if listen_socket.poll():
                 ap = listen_socket.recv()
                 to_process.append(ap.packet)
+        if len(to_process) > 0:
+            print(to_process)
         return to_process
 
     def add_scheduled_job(self, packet: 'AbstractPacket'):

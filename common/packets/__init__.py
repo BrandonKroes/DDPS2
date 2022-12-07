@@ -1,6 +1,6 @@
 from .abstract_packet import AbstractPacket
 from .shutdown_packet import ShutdownPacket
-from .job_status_packet import JobStatusPacket
+from .blender_status_packet import BlenderStatusPacket
 from .new_job_packet import NewJobPacket
 from .worker_id_packet import WorkerIDPacket
 from .register_client_packet import RegisterClient

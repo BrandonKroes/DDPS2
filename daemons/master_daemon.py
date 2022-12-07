@@ -6,6 +6,7 @@ from daemons import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket
 from common.packets import JobType, AbstractPacket
 from common.parser import YAMLParser
+from master.classes.packet_router import PacketRouter
 from master.operations import OperationManager
 
 
@@ -32,6 +33,8 @@ class MasterDaemon(OperatorDaemon):
             multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
         ]
 
+        self.packet_router = PacketRouter()
+
         # start all sockets
         for x in self.listen_sockets + self.outgoing_sockets:
             x.start()
@@ -50,25 +53,22 @@ class MasterDaemon(OperatorDaemon):
                 to_process.append(listen_socket.recv().packet)
         return to_process
 
-    def process_packet_operation(self, packet: 'AbstractPacket'):
-        packet.execute_master_side(self)
-
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)
 
     def main(self):
-        while self.active:
+        # TODO: KeyboardInterrupt to shutdown systems!
 
+        while self.active:
             self.check_for_cron()
-            operations = self.check_listen_sockets()
-            if len(operations) > 0:
-                for operation in operations:
-                    try:
-                        operation.print()
-                    except TypeError:
-                        print("Type lacks a print function")
-                    self.process_packet_operation(operation)
-            self.operations_manager.main(self)
+            packet_queue = self.check_listen_sockets()
+            for packet in packet_queue:
+                self.packet_router.new_packet(self, packet)
+
+    def register_node_failure(self, node):
+        # check if the node is part of an operation
+        self.operations_manager.report_node_failure(master=self, node=node)
+
 
     def shutdown(self):
         print("Goodbye!")

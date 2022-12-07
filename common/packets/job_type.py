@@ -8,3 +8,4 @@ class JobType(Enum):
     REGISTER = 3
     SHUTDOWN = 4
     RENDER = 5
+    NEW_OPERATION = 6

@@ -1,7 +1,7 @@
 from common.packets import AbstractPacket
 
 
-class JobStatusPacket(AbstractPacket):
+class BlenderStatusPacket(AbstractPacket):
 
     def __init__(self, packet_id, job_type, data_packet):
         super().__init__(packet_id, job_type, data_packet)

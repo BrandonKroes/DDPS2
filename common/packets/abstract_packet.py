@@ -11,17 +11,17 @@ class AbstractPacket(ABC):
     packet_id = ""
     data_packet = ""
 
-    def __init__(self, packet_id, job_type: 'JobType', data_packet):
+    def __init__(self, packet_id, job_type: 'JobType', data_packet, override=False):
         self.packet_id = packet_id
         self.job_type = job_type
         self.data_packet = data_packet
+        self.override = override
 
     def get_id(self):
         return self.packet_id
 
     def print(self):
-        if self.job_type is not JobType.STATUS:
-            print("PacketID = " + str(self.packet_id) + " | JobType = " + str(self.job_type.name))
+        print("PacketID = " + str(self.packet_id) + " | JobType = " + str(self.job_type.name))
 
     def get_data_packet(self):
         return self.data_packet

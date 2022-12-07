@@ -21,9 +21,8 @@ class BlenderRenderPacket(AbstractPacket):
         # worker.actively_working = False
 
     def done_worker_side(self, worker: 'WorkerDaemon'):
-        from common.communication import EndpointConfig
         self.finished = True
-        worker.outgoing_request.send(EndpointConfig(packet=self, port=worker.master_port, host=worker.master_host))
+        worker.send_packet_to_master(packet=self)
 
     def execute_master_side(self, master):
-        master.operations_manager.operation_callback(data_packet=self.data_packet, master=self)
+        master.operations_manager.operation_callback(packet=self, master=self)
