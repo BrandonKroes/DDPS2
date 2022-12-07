@@ -23,6 +23,7 @@ class BlenderRenderPacket(AbstractPacket):
     def done_worker_side(self, worker: 'WorkerDaemon'):
         self.finished = True
         worker.send_packet_to_master(packet=self)
+        return
 
     def execute_master_side(self, master):
         master.operations_manager.operation_callback(packet=self, master=self)

@@ -78,17 +78,17 @@ class WorkerDaemon(OperatorDaemon):
         return self.actively_working is False and len(self.scheduled_jobs) > 0
 
     def check_if_active_processes_done(self):
-        new_active_processes = []
-        for (k, v) in self.active_processes[:]:
-            if v.exitcode == 0:
-                print("job done")
-                invert_op = getattr(k, "done_worker_side", None)
-                if callable(invert_op):
-                    k.done_worker_side(self)
-
-            else:
-                new_active_processes.append((k, v))
-        self.active_processes = new_active_processes
+        if len(self.active_processes) > 0:
+            front_process = self.active_processes.pop(0)
+            if front_process is not None:
+                k, v = front_process
+                if v.exitcode == 0:
+                    invert_op = getattr(k, "done_worker_side", None)
+                    if callable(invert_op):
+                        k.done_worker_side(self)
+                    return
+                else:
+                    self.active_processes.insert(0, front_process)
 
     def send_packet(self, endpoint):
         self.outgoing_request.send(endpoint)
@@ -115,6 +115,7 @@ class WorkerDaemon(OperatorDaemon):
 
     def send_packet_to_master(self, packet):
         self.send_packet(EndpointConfig(packet=packet, host=self.master_host, port=self.master_port))
+        return
 
     def check_listen_sockets(self) -> ['AbstractPacket']:
         to_process: ['AbstractPacket'] = []

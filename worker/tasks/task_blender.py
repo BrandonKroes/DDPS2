@@ -85,7 +85,6 @@ class TaskBlender(AbstractTask):
                 from common.packets import JobType
                 from common.packets import PrintPacket
                 print("Frame finished :" + str(self.frame_count))
-                print(self)
                 worker.send_packet(
                     EndpointConfig(host=worker.master_host, port=worker.master_port,
                                    packet=PrintPacket(packet_id=1, job_type=JobType.OPERATION,
@@ -103,11 +102,9 @@ class TaskBlender(AbstractTask):
             prepend = line[0:4]
 
             if prepend == "Fra:":  # if it is a frame
-                print(line)
                 for c in line[4:-1]:
                     from curses.ascii import isdigit
                     if isdigit(c):
-                        print(c)
                         buffer += c
                     else:
                         break

@@ -23,13 +23,16 @@ class BlenderOperation:
     orchestrated = False
     start_time = ""
     end_time = ""
+    frame_rate = ""
 
     def __init__(self, operation_id, data_packet):
+        self.total_time = None
         self.operation_id = operation_id
-        self.blender_file = data_packet['blender_file_path']
+        self.blender_file_path = data_packet['blender_file_path']
         self.start_frame = data_packet['start_frame']
         self.stop_frame = data_packet['stop_frame']
         self.engine = data_packet['engine']
+        self.frame_rate = data_packet['frame_rate']
         self.output_path = data_packet['output_path']
 
     def orchestrate_cluster(self, nodes):
@@ -38,32 +41,32 @@ class BlenderOperation:
 
         # TODO: Dynamically assign the workload i.e. a node with an iGPU should get a less work than a node with a A6000
         packet_id = 0
-        frames = self.stop_frame - self.start_frame
+        frames = (self.stop_frame + 1) - self.start_frame
 
         frames_per_node = self.get_evenly_divided_values(frames, len(nodes))
-        start_iter_frames = self.start_frame
+        print("===")
+        print(frames_per_node)
+        print(self.blender_file_path)
+        print("===")
 
-        packet_count = len(nodes)
-
+        offset = 0
         for i in range(len(nodes)):
             brp = BlenderRenderPacket(packet_id, job_type=JobType.RENDER,
                                       data_packet={
                                           'operation_reference': self.operation_id,
                                           'packet_reference': packet_id,
                                           'blender_file_path': self.blender_file_path,
-                                          'start_frame': start_iter_frames,
-                                          'stop_frame': start_iter_frames + frames_per_node[i],
+                                          'start_frame': self.start_frame + offset,
+                                          'stop_frame': self.start_frame + offset + frames_per_node[i] - 1,
                                           'output_folder': self.output_path + str(self.operation_id) + "/",
                                           'engine': self.engine
                                       })
-
-            print(nodes[i][0])
             ec = EndpointConfig(host=nodes[i][0]['worker']['host'],
                                 port=nodes[i][0]['worker']['port'],
                                 packet=brp)
             self.packets.append(ec)
-            start_iter_frames = start_iter_frames + frames_per_node[i]
             packet_id += 1
+            offset += frames_per_node[i]
 
         self.orchestrated = True
 
@@ -94,8 +97,9 @@ class BlenderOperation:
         self.packets = packets
 
     @staticmethod
-    def get_evenly_divided_values(value_to_be_distributed, times):
-        return [value_to_be_distributed // times + int(x < value_to_be_distributed % times) for x in range(times)]
+    def get_evenly_divided_values(value_to_be_distributed, amount_divisions):
+        return [(value_to_be_distributed // amount_divisions) + (
+            1 if i < (value_to_be_distributed % amount_divisions) else 0) for i in range(amount_divisions)]
 
     def get_packets(self):
         t_packet = self.packets
@@ -117,14 +121,25 @@ class BlenderOperation:
 
     def on_cluster_complete(self):
 
+        merge_command = "ffmpeg -nostdin -y -framerate " + str(
+            self.frame_rate) + " -pattern_type glob -i '" + self.output_path + str(
+            self.operation_id) + "/" + "*.png' -c:v libx264 -pix_fmt yuv420p " + self.output_path + str(
+            self.operation_id) + "/" + str(
+            self.operation_id) + ".mp4  "
+        print(merge_command)
         render_process = subprocess
-        render_process.call(["ffmpeg -nostdin -y -framerate 30 -pattern_type glob -i '" + self.output_path + '/' + str(
-            self.operation_id) + "/*.png' -c:v libx264 -pix_fmt yuv420p " + str(
-            self.operation_id) + ".mp4 > /dev/null 2>&1 < /dev/null "], shell=True, stdout=False)
+        render_process.call(
+            [merge_command
+             ], shell=True, stdout=False)
 
         self.finished = True
         self.end_time = datetime.datetime.now()
         self.total_time = self.end_time - self.start_time
-        print('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S"))
-        print('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S"))
-        print('duration: ' + str(self.total_time.total_seconds()))
+
+        open(self.output_path + str(
+            self.operation_id) + "/" + self.start_time.strftime("%H %M %S") + ".txt", "x")
+        with open(self.output_path + str(
+                self.operation_id) + "/" + self.start_time.strftime("%H %M %S") + ".txt", "a") as file:
+            file.write('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+            file.write('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+            file.write('duration: ' + str(self.total_time.total_seconds()) + "\n")

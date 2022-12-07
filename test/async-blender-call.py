@@ -9,9 +9,10 @@ from daemons import WorkerDaemon
 
 njp = BlenderOperation(1, data_packet={
     'job_type': JobType.OPERATION,
-    'blender_file_path': '/home/brand/lu/ddps/assignment2/example/example.blend',
+    'blender_file_path': '/home/brand/lu/ddps/assignment2/example/1/untitled.blend',
     'start_frame': 1, 'stop_frame': 2,
-    'output_path': "/home/brand/lu/ddps/assignment2/example/5/4/",
+    'frame_rate': '24',
+    'output_path': "/home/brand/lu/ddps/assignment2/example/2/",
     'engine': "CYCLES"})
 wd = WorkerDaemon("../config/conf.yaml")
 wd.add_scheduled_job(NewOperationPacket(packet_id=1, job_type=JobType.OPERATION,
