@@ -76,11 +76,11 @@ echo "writing config for worker $n"
 ssh -T $n 'echo $"worker:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" blender_path: '$blender_path'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host:'$n'" >> /local/$USER/DDPS2/config/conf.yaml'
-ssh -T $n 'echo $" port:$worker_port" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" port:'$worker_port'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" cycles_device:'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host:'$master'" >> /local/$USER/DDPS2/config/conf.yaml'
-ssh -T $n 'echo $" port:$master_port" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" port:'$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
 
 #echo "starting node $n as worker"
 #ssh -T $n "nohup ./local/$USER/DDPS2/test/worker-test.py > debug.log &"
