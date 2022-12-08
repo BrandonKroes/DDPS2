@@ -13,7 +13,7 @@ class YAMLParser:
         try:
             f = open(self.path, encoding='utf-8')
             self.data = yaml.load(f, Loader=yaml.FullLoader)
-            # perform file operations
+            # TODO: Add error if data is a string, this can be caused when the conf doesn't have spaces for instance: port:1234 instead of port: 1234
 
             f.close()
         except FileNotFoundError:
