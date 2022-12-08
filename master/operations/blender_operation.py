@@ -127,10 +127,10 @@ class BlenderOperation:
             self.operation_id) + "/" + str(
             self.operation_id) + ".mp4  "
         print(merge_command)
-        render_process = subprocess
-        render_process.call(
-            [merge_command
-             ], shell=True, stdout=False)
+        # render_process = subprocess
+        # render_process.call(
+        #    [merge_command
+        #     ], shell=True, stdout=False)
 
         self.finished = True
         self.end_time = datetime.datetime.now()

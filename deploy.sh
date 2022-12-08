@@ -33,7 +33,7 @@ master=${node_list[0]}
 worker=${node_list[@]:1}
 echo "master is "$master
 echo "worker is "$worker
-blender_path="/local/$USER/blender-3.3.1-linux-x64"
+blender_path="/local/$USER/blender-3.3.1-linux-x64/blender"
 repo="https://github.com/BrandonKroes/DDPS2.git"
 
 rm -rf /var/scratch/$USER/blender-3.3.1-linux-x64
@@ -47,15 +47,16 @@ echo "starting the master!"
 
 
 # removing possible residual data
-ssh -T $master "rm -r /local/$USER/; mkdir /local/$USER/ && exit"
+#ssh -T $master "rm -r /local/$USER/; mkdir /local/$USER/ && exit"
 
-ssh -T $master "nohup git clone https://github.com/BrandonKroes/DDPS2.git /local/$USER/DDPS2"
-ssh -T $master "truncate -s 0 /local/$USER/DDPS2/config/conf.yaml"
-ssh -T $master 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
-ssh -T $master 'echo $" host: '$master'" >> /local/$USER/DDPS2/config/conf.yaml'
-ssh -T $master 'echo $" port: '$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
+#ssh -T $master "nohup git clone https://github.com/BrandonKroes/DDPS2.git /local/$USER/DDPS2"
+#ssh -T $master "truncate -s 0 /local/$USER/DDPS2/config/conf.yaml"
+#ssh -T $master 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
+#ssh -T $master 'echo $" host: '$master'" >> /local/$USER/DDPS2/config/conf.yaml'
 
-ssh -T $master "nohup python3.6 /local/$USER/DDPS2/test/master-test.py > master.log &"
+#ssh -T $master 'echo $" port: '$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
+
+#ssh -T $master "nohup python3.6 /local/$USER/DDPS2/test/master-test.py > master.log &"
 
 
 for n in ${worker}; do
@@ -77,16 +78,16 @@ ssh -T $n 'echo $"worker:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" blender_path: '$blender_path'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host: '$n'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" port: '$worker_port'" >> /local/$USER/DDPS2/config/conf.yaml'
-ssh -T $n 'echo $" cycles_device:'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" cycles_device: 'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host: '$master'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" port: '$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
-
+ssh -T $n 'module load cuda11.7/toolkit'
+sleep 2
 #echo "starting node $n as worker"
-ssh -T $n "nohup ./local/$USER/DDPS2/test/worker-test.py > debug.log &"
+#ssh -T $n "nohup ./local/$USER/DDPS2/test/worker-test.py > debug.log &"
 
 done
 
-sleep 10 # launching all workers can take some time
 
 
