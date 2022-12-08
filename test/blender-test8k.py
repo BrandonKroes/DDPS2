@@ -10,7 +10,7 @@ from daemons import WorkerDaemon
 njp = BlenderOperation(1, data_packet={
     'job_type': JobType.OPERATION,
     'blender_file_path': '/home/batkroes/8k120fps.blend',
-    'start_frame': 1, 'stop_frame': 7200,
+    'start_frame': 1, 'stop_frame': 1200,
     'frame_rate': '120',
     'output_path': "/home/batkroes/8ktest",
     'engine': "CYCLES"})

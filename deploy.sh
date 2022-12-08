@@ -83,10 +83,9 @@ ssh -T $n 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host: '$master'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" port: '$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'module load cuda11.7/toolkit'
+echo "starting node $n as worker"
+ssh -T $n "nohup python3.6 /local/$USER/DDPS2/test/worker-test.py > debug.log &"
 sleep 2
-#echo "starting node $n as worker"
-#ssh -T $n "nohup ./local/$USER/DDPS2/test/worker-test.py > debug.log &"
-
 done
 
 
