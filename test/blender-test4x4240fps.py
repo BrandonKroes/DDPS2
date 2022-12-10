@@ -12,7 +12,7 @@ njp = BlenderOperation(1, data_packet={
     'blender_file_path': '/home/batkroes/4k60fps.blend',
     'start_frame': 1, 'stop_frame': 2400,
     'frame_rate': '240',
-    'output_path': "/home/batkroes/4x4240fps",
+    'output_path': "/var/scratch/batkroes/4x4240fps",
     'engine': "CYCLES"})
 wd = WorkerDaemon("../config/conf.yaml")
 wd.add_scheduled_job(NewOperationPacket(packet_id=1, job_type=JobType.OPERATION,
