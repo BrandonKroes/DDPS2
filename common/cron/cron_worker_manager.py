@@ -20,7 +20,6 @@ class CronWorkerManager(AbstractCron):
         failed_workers = []
         workers = []
         if self.timer < time.time():
-            print("Time to check if everyone is still online!")
             for (node, status) in master.workers:
                 if (status['last_message'] + self.trigger) < time.time():
                     print("Found a node that didn't check in :( " + str(node['worker_id']))
@@ -35,7 +34,6 @@ class CronWorkerManager(AbstractCron):
                                                                                     data_packet=None)))
                         workers.append((node, status))
                 else:
-                    print("Node: " + str(node['worker_id']) + " seems to be doing fine! ")
                     workers.append((node, status))
             master.workers = workers
 

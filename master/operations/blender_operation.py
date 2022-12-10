@@ -136,6 +136,9 @@ class BlenderOperation:
         self.end_time = datetime.datetime.now()
         self.total_time = self.end_time - self.start_time
 
+        print('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+        print('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+        print('duration: ' + str(self.total_time.total_seconds()) + "\n")
         with open(self.output_path + str(
                 self.operation_id) + "/" + self.start_time.strftime("%H%M%S") + ".txt", "w") as file:
             file.write('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
