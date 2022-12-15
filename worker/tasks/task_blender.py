@@ -1,3 +1,4 @@
+from worker.tasks import AbstractTask
 import subprocess
 import sys
 import os.path
@@ -8,8 +9,6 @@ from common.communication import EndpointConfig
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
-from worker.tasks import AbstractTask
 
 
 class TaskBlender(AbstractTask):
@@ -54,6 +53,8 @@ class TaskBlender(AbstractTask):
     def execute(self, worker):
         if 'unset' in self.__dict__:
             # TODO: Throw exception
+            raise ValueError(
+                'Unset value is supplied. blender_file_path, start_frame, stop_frame and engine are mandatory')
             return print("Unset value is supplied. blender_file_path, start_frame, stop_frame and engine are mandatory")
 
         extra_args = []
@@ -68,7 +69,8 @@ class TaskBlender(AbstractTask):
             '--frame-end', str(self.stop_frame),
             '--render-output', str(self.output_folder)
         ]
-        extra_args = [' -a'] + extra_args  # Render the whole animation using all the settings saved in the blend-file.
+        # Render the whole animation using all the settings saved in the blend-file.
+        extra_args = [' -a'] + extra_args
         self.running = True
         self.render_process = subprocess
         running_process = self.render_process.Popen([self.blender_path + " ".join(args) + " ".join(extra_args)],
