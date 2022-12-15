@@ -20,7 +20,9 @@ class OperationManager:
         for packet in data_packet.get_packets():
             # TODO: log operation activation
             master.send_packet(packet)
-            print("sending out packets")
+            print(open('/sys/class/rtc/rtc0/time').read(),
+                  "::Sending out Packets")
+            # print("sending out packets")
         self.operations.append(data_packet)
 
     def operation_callback(self, master, packet):
