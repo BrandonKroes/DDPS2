@@ -18,19 +18,23 @@ class MasterDaemon(OperatorDaemon):
     def __init__(self, config_path):
         super().__init__(OperatorTypes.MASTER)
         self.conf = YAMLParser.PathToDict(config_path)
-        self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
+        self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(
+            duplex=True)
 
         self.operations_manager = OperationManager()
 
-        self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
+        self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(
+            duplex=True)
 
         self.listening_pipes = [self.incoming_request]
 
         self.listen_sockets = [
-            multiprocessing.Process(target=ReceiveSocket, args=((incoming_request_pipe, self.conf['master']),))
+            multiprocessing.Process(target=ReceiveSocket, args=(
+                (incoming_request_pipe, self.conf['master']),))
         ]
         self.outgoing_sockets = [
-            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
+            multiprocessing.Process(
+                target=SendSocket, args=(outgoing_request_pipe,))
         ]
 
         self.packet_router = PacketRouter()
@@ -58,17 +62,18 @@ class MasterDaemon(OperatorDaemon):
 
     def main(self):
         # TODO: KeyboardInterrupt to shutdown systems!
-
-        while self.active:
-            self.check_for_cron()
-            packet_queue = self.check_listen_sockets()
-            for packet in packet_queue:
-                self.packet_router.new_packet(self, packet)
+        try:
+            while self.active:
+                self.check_for_cron()
+                packet_queue = self.check_listen_sockets()
+                for packet in packet_queue:
+                    self.packet_router.new_packet(self, packet)
+        except KeyboardInterrupt:
+            print("Abborted, KeyboardInterrupt ")
 
     def register_node_failure(self, node):
         # check if the node is part of an operation
         self.operations_manager.report_node_failure(master=self, node=node)
-
 
     def shutdown(self):
         print("Goodbye!")
