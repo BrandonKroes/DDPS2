@@ -1,3 +1,10 @@
+from common.parser.yaml_parser import YAMLParser
+from common.packets.job_type import JobType
+from common.packets import RegisterClient
+from common.communication import ReceiveSocket, SendSocket, EndpointConfig
+from daemons import OperatorDaemon, OperatorTypes
+from common.cron.cron_heart_beat import CronHeartBeat
+from common.cron import AbstractCron
 import multiprocessing
 from multiprocessing import Process
 
@@ -6,14 +13,6 @@ import os.path
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
-from common.cron import AbstractCron
-from common.cron.cron_heart_beat import CronHeartBeat
-from daemons import OperatorDaemon, OperatorTypes
-from common.communication import ReceiveSocket, SendSocket, EndpointConfig
-from common.packets import RegisterClient
-from common.packets.job_type import JobType
-from common.parser.yaml_parser import YAMLParser
 
 
 class WorkerDaemon(OperatorDaemon):
@@ -37,18 +36,23 @@ class WorkerDaemon(OperatorDaemon):
         self.master_host = self.conf['master']['host']
         self.master_port = self.conf['master']['port']
 
-        self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
-        self.worker_modifier, self.worker_modifier_pipe = multiprocessing.Pipe(duplex=True)
-        self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
+        self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(
+            duplex=True)
+        self.worker_modifier, self.worker_modifier_pipe = multiprocessing.Pipe(
+            duplex=True)
+        self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(
+            duplex=True)
 
         self.listening_pipes = [self.incoming_request]
 
         self.listen_sockets = [
-            multiprocessing.Process(target=ReceiveSocket, args=((incoming_request_pipe, self.conf['worker']),))
+            multiprocessing.Process(target=ReceiveSocket, args=(
+                (incoming_request_pipe, self.conf['worker']),))
         ]
 
         self.outgoing_sockets = [
-            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
+            multiprocessing.Process(
+                target=SendSocket, args=(outgoing_request_pipe,))
         ]
 
         # start all sockets
@@ -70,7 +74,8 @@ class WorkerDaemon(OperatorDaemon):
         if self.active_packet.override:
             self.active_packet.execute_worker_side(self)
         else:
-            p = Process(target=self.active_packet.execute_worker_side, args=(self,))
+            p = Process(
+                target=self.active_packet.execute_worker_side, args=(self,))
             p.start()
             self.active_processes.append((self.active_packet, p))
 
@@ -98,23 +103,27 @@ class WorkerDaemon(OperatorDaemon):
             cron_operation.cron_time_passed_worker(self)
 
     def main(self):
-        # TODO: KeyboardInterrupt to shutdown systems!
-        while True:
-            self.check_for_cron()
-            # update incoming sockets
-            self.check_if_active_processes_done()
-            # if self.not_performing_job_but_job_queued():
-            if len(self.scheduled_jobs) > 0:
-                self.execute_new_job()
-            operations = self.check_listen_sockets()
-            if len(operations) > 0:
-                for operation in operations:
-                    self.add_scheduled_job(operation)
+        # TODO: FINISH KeyboardInterrupt to shutdown systems!
+        try:
+            while True:
+                self.check_for_cron()
+                # update incoming sockets
+                self.check_if_active_processes_done()
+                # if self.not_performing_job_but_job_queued():
+                if len(self.scheduled_jobs) > 0:
+                    self.execute_new_job()
+                operations = self.check_listen_sockets()
+                if len(operations) > 0:
+                    for operation in operations:
+                        self.add_scheduled_job(operation)
 
-            # queue incoming jobs for schedule
+                # queue incoming jobs for schedule
+        except KeyboardInterrupt:
+            print("Abborted, KeyboardInterrupt ")
 
     def send_packet_to_master(self, packet):
-        self.send_packet(EndpointConfig(packet=packet, host=self.master_host, port=self.master_port))
+        self.send_packet(EndpointConfig(
+            packet=packet, host=self.master_host, port=self.master_port))
         return
 
     def check_listen_sockets(self) -> ['AbstractPacket']:
