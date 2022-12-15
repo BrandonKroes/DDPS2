@@ -69,7 +69,7 @@ class MasterDaemon(OperatorDaemon):
                 for packet in packet_queue:
                     self.packet_router.new_packet(self, packet)
         except KeyboardInterrupt:
-            print("Abborted, KeyboardInterrupt ")
+            print("Abborted, KeyboardInterrupt")
 
     def register_node_failure(self, node):
         # check if the node is part of an operation
