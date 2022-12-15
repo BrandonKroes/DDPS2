@@ -61,7 +61,7 @@ class MasterDaemon(OperatorDaemon):
         self.outgoing_request.send(endpoint)
 
     def main(self):
-        # TODO: KeyboardInterrupt to shutdown systems!
+        # TODO: FINISH KeyboardInterrupt to shutdown systems!
         try:
             while self.active:
                 self.check_for_cron()
