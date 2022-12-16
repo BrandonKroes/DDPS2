@@ -3,3 +3,4 @@ example
 *.pyc
 *.mp4
 config/conf.yaml
+test.py
