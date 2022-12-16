@@ -12,12 +12,15 @@ class YAMLParser:
     def serialize_to_dict(self):
         try:
             f = open(self.path, encoding='utf-8')
-            self.data = yaml.load(f, Loader=yaml.FullLoader)
-            # TODO: Add error if data is a string, this can be caused when the conf doesn't have spaces for instance: port:1234 instead of port: 1234
+            try:
+                self.data = yaml.load(f, Loader=yaml.FullLoader)
+            except yaml.YAMLError as e:
+                print(e)
 
             f.close()
         except FileNotFoundError:
-            print(f"Tried to open file {self.path}, but unable to find the file.")
+            print(
+                f"Tried to open file {self.path}, but unable to find the file.")
             exit(1)
         except IsADirectoryError:
             print(f'Directory given instead of a file {self.path}')
