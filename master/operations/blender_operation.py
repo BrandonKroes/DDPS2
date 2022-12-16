@@ -141,7 +141,10 @@ class BlenderOperation:
         print('duration: ' + str(self.total_time.total_seconds()) + "\n")
         with open(self.output_path + str(
                 self.operation_id) + "/" + self.start_time.strftime("%H%M%S") + ".txt", "w") as file:
-            file.write('start time: ' + self.start_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
-            file.write('end time: ' + self.end_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
-            file.write('duration: ' + str(self.total_time.total_seconds()) + "\n")
+            file.write('start time: ' +
+                       self.start_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+            file.write('end time: ' +
+                       self.end_time.strftime("%d/%m/%Y %H:%M:%S") + "\n")
+            file.write('duration: ' +
+                       str(self.total_time.total_seconds()) + "\n")
             file.write(merge_command)
