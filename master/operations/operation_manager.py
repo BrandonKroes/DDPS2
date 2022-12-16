@@ -1,5 +1,6 @@
 from common.packets.job_type import JobType
 from master.operations.blender_operation import BlenderOperation
+from master.operations.cluster_notify_operations import ClusterNotifyOperation
 
 
 class OperationManager:
@@ -12,6 +13,7 @@ class OperationManager:
     def report_node_failure(self, master, node):
         for operation in self.operations:
             operation.node_failure(master=master, failure_node=node)
+        self.instantiate_operation(master, ClusterNotifyOperation())
 
     def instantiate_operation(self, master, data_packet):
         self.operation_count += 1
