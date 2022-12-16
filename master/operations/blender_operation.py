@@ -84,8 +84,13 @@ class BlenderOperation:
             # this operation had nothing to do with this task!
             return
 
-        # TODO: Dynamically decide which node should be picked!
-        default_node = master.nodes[0]
+        best = master.nodes[0][0]['worker']['benchmark']
+        bestNode = 0
+        for i in range(1, len(master.nodes)):
+            if master.nodes[0][0]['worker']['benchmark'] > best:
+                best = master.nodes[0][0]['worker']['benchmark']
+                bestNode = i
+        default_node = master.nodes[bestNode]
         node_info = default_node[0]
 
         # Redirecting the packet to a different node!
