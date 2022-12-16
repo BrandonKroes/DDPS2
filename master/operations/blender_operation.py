@@ -39,11 +39,11 @@ class BlenderOperation:
 
         self.start_time = datetime.datetime.now()
 
-        # TODO: Dynamically assign the workload i.e. a node with an iGPU should get a less work than a node with a A6000
         packet_id = 0
         frames = (self.stop_frame + 1) - self.start_frame
 
-        frames_per_node = self.get_evenly_divided_values(frames, len(nodes))
+        frames_per_node = self.get_distributed_work(
+            frames, len(nodes), nodes)
         print("===")
         print(frames_per_node)
         print(self.blender_file_path)
@@ -100,6 +100,25 @@ class BlenderOperation:
     def get_evenly_divided_values(value_to_be_distributed, amount_divisions):
         return [(value_to_be_distributed // amount_divisions) + (
             1 if i < (value_to_be_distributed % amount_divisions) else 0) for i in range(amount_divisions)]
+
+    @staticmethod
+    def get_distributed_work(value_to_be_distributed, amount_nodes, nodes):
+        totalValue = 0
+        framesAssigned = 0
+        result = []
+
+        for i in range(0, amount_nodes):
+            totalValue += nodes[i]
+
+        for i in range(0, amount_nodes):
+            part = int((nodes[i] / totalValue) * value_to_be_distributed)
+            framesAssigned += part
+            if i == (amount_nodes - 1):
+                part += (value_to_be_distributed - framesAssigned)
+            result.append(part)
+
+        # return [(value_to_be_distributed // amount_divisions) + (
+        #     1 if i < (value_to_be_distributed % amount_divisions) else 0) for i in range(amount_divisions)]
 
     def get_packets(self):
         t_packet = self.packets

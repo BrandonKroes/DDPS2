@@ -78,6 +78,7 @@ ssh -T $n 'echo $"worker:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" blender_path: '$blender_path'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host: '$n'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" port: '$worker_port'" >> /local/$USER/DDPS2/config/conf.yaml'
+ssh -T $n 'echo $" benchmark: 1" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" cycles_device: 'CUDA'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $"master:" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'echo $" host: '$master'" >> /local/$USER/DDPS2/config/conf.yaml'
@@ -85,11 +86,6 @@ ssh -T $n 'echo $" port: '$master_port'" >> /local/$USER/DDPS2/config/conf.yaml'
 ssh -T $n 'module load cuda11.7/toolkit'
 echo "starting node $n as worker"
 #ssh -T $n "nohup python3.6 /local/$USER/DDPS2/test/worker-test.py > debug.log &"
-
-# Benchmark each worker/write benchmark to master
-# result=$(ssh -T $n "nohup python3.6 /local/$USER/DDPS2/test/benchmark.py" 2>&1)
-result=1
-ssh -T $master 'echo $" Benchmark-'$n': '$result'" >> /local/$USER/DDPS2/config/conf.yaml'
 
 done
 
