@@ -11,14 +11,12 @@ class NewJobPacket(AbstractPacket):
 
     def execute_worker_side(self, worker):
         if super().get_type() == JobType.UNDEFINED:
-            # TODO: Throw exception
-            print("job type not set!")
+            raise ValueError('Job Type not set')
         elif super().get_type() == JobType.RENDER:
             print("render started")
             worker.execute_render(super().get_data_packet())
         else:
-            # TODO: Throw exception
-            print("Job type not implemented " + str(self.get_type()))
+            raise ValueError('Job Type not implemented' + str(self.get_type()))
 
     def execute_master_side(self, master):
         # master initiates sending it to the client.
