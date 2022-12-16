@@ -103,7 +103,6 @@ class WorkerDaemon(OperatorDaemon):
             cron_operation.cron_time_passed_worker(self)
 
     def main(self):
-        # TODO: FINISH KeyboardInterrupt to shutdown systems!
         try:
             while True:
                 self.check_for_cron()
