@@ -9,3 +9,4 @@ from .worker_status_packet import WorkerStatusPacket
 from .blender_render_packet import BlenderRenderPacket
 from .job_type import JobType as JobType
 from .print_package import PrintPacket
+from .cluster_notify_packet import ClusterNotifyPacket

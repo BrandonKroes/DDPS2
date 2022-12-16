@@ -4,6 +4,7 @@ import sys
 import sqlite3
 from sqlite3 import Error
 
+from common.cron import CronStoreStatus
 from common.cron.cron_worker_manager import CronWorkerManager
 from daemons import OperatorDaemon, OperatorTypes
 from common.communication import ReceiveSocket, SendSocket
@@ -11,7 +12,6 @@ from common.packets import JobType, AbstractPacket
 from common.parser import YAMLParser
 from master.classes.packet_router import PacketRouter
 from master.operations import OperationManager
-from urllib.request import pathname2url
 
 
 class MasterDaemon(OperatorDaemon):
@@ -33,7 +33,7 @@ class MasterDaemon(OperatorDaemon):
         self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
 
         self.operations_manager = OperationManager()
-
+        self.unable_to_connect, unable_to_connect_pipe = multiprocessing.Pipe(duplex=True)
         self.outgoing_request, outgoing_request_pipe = multiprocessing.Pipe(duplex=True)
 
         self.listening_pipes = [self.incoming_request]
@@ -42,7 +42,7 @@ class MasterDaemon(OperatorDaemon):
             multiprocessing.Process(target=ReceiveSocket, args=((incoming_request_pipe, self.conf['master']),))
         ]
         self.outgoing_sockets = [
-            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
+            multiprocessing.Process(target=SendSocket, args=((outgoing_request_pipe, unable_to_connect_pipe),))
         ]
 
         self.packet_router = PacketRouter()
@@ -53,6 +53,7 @@ class MasterDaemon(OperatorDaemon):
 
     def boot(self):
         self.cron.append(CronWorkerManager())
+        self.cron.append(CronStoreStatus())
 
     # Source: https://stackoverflow.com/questions/12932607/how-to-check-if-a-sqlite3-database-exists-in-python
     def if_database_exits(self):
@@ -94,7 +95,8 @@ class MasterDaemon(OperatorDaemon):
         query = '''INSERT INTO master_state(content)
               VALUES(?)'''
 
-        self.db.execute(query, pickle.dumps(self.__dict__))
+        self.db.execute(query,
+                        (pickle.dumps({'workers': self.workers, 'operations_manager': self.operations_manager}),))
 
     def check_for_cron(self):
         for cron_operation in self.cron:
