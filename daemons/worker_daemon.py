@@ -51,7 +51,7 @@ class WorkerDaemon(OperatorDaemon):
         ]
 
         self.outgoing_sockets = [
-            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe, unable_to_connect_pipe,))
+            multiprocessing.Process(target=SendSocket, args=((outgoing_request_pipe, unable_to_connect_pipe),))
         ]
 
         # start all sockets
@@ -122,11 +122,12 @@ class WorkerDaemon(OperatorDaemon):
                 # Am... I the master now?
                 if self.cluster[0]['worker_id'] == self.worker_id:
                     # I HAVE THE POWER, time to restart to master mode!
-                    os.system("factory_daemon.py --operator MASTER --configuration_location " + self.config_path)
+                    os.system(
+                        "/home/batkroes/DDPS2/factory_daemon.py --operator MASTER --configuration_location " + self.config_path)
 
                     # See yah
                     self.shutdown()
-                # not the master :(
+                # not the master, changing ports to the right locations and waiting to see if the new master is online!
                 else:
                     self.master_port = self.cluster[0]['port']
                     self.master_host = self.cluster[0]['port']

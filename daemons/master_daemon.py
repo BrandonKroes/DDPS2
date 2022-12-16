@@ -72,7 +72,7 @@ class MasterDaemon(OperatorDaemon):
     def initialize_db(self):
         try:
             self.db = sqlite3.connect(self.db_filename)
-            db_query = """ CREATE TABLE master_state (
+            db_query = """ CREATE TABLE IF NOT EXISTS master_state (
                                         id integer PRIMARY KEY,
                                         content BLOB
                                     ); """

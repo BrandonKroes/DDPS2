@@ -7,12 +7,9 @@ from common.communication import EndpointConfig
 class SendSocket:
     stack = []
 
-    def __init__(self, pipe, error_pipe, **kwargs):
+    def __init__(self, args):
         # Pipe is mandatory
-        self.pipe = pipe
-        self.error_pipe = error_pipe
-        for k, v in kwargs.items():
-            self.__dict__[k] = v
+        self.pipe, self.error_pipe = args
         self.main()
 
     def send_message(self, packet: EndpointConfig):
