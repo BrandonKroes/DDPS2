@@ -7,9 +7,10 @@ from common.communication import EndpointConfig
 class SendSocket:
     stack = []
 
-    def __init__(self, pipe, **kwargs):
+    def __init__(self, pipe, error_pipe, **kwargs):
         # Pipe is mandatory
         self.pipe = pipe
+        self.error_pipe = error_pipe
         for k, v in kwargs.items():
             self.__dict__[k] = v
         self.main()
@@ -29,7 +30,7 @@ class SendSocket:
                 sleep(10)
                 count += 1
                 if count > 5:
-                    exit(-1)
+                    self.error_pipe.send(True)
             break
         return
 

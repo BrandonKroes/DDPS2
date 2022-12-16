@@ -23,11 +23,12 @@ class WorkerDaemon(OperatorDaemon):
     activated = False
     scheduled_jobs = []
     active_processes = []
-
+    cluster = []
     idle = True
 
     def __init__(self, config_path):
         super().__init__(OperatorTypes.WORKER)
+        self.config_path = config_path
         self.conf = YAMLParser.PathToDict(config_path)
         self.blender_path = self.conf['worker']['blender_path']
         self.worker_id = None
@@ -36,6 +37,8 @@ class WorkerDaemon(OperatorDaemon):
         self.cron: [AbstractCron] = []
         self.master_host = self.conf['master']['host']
         self.master_port = self.conf['master']['port']
+
+        self.unable_to_connect, unable_to_connect_pipe = multiprocessing.Pipe(duplex=True)
 
         self.incoming_request, incoming_request_pipe = multiprocessing.Pipe(duplex=True)
         self.worker_modifier, self.worker_modifier_pipe = multiprocessing.Pipe(duplex=True)
@@ -48,7 +51,7 @@ class WorkerDaemon(OperatorDaemon):
         ]
 
         self.outgoing_sockets = [
-            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe,))
+            multiprocessing.Process(target=SendSocket, args=(outgoing_request_pipe, unable_to_connect_pipe,))
         ]
 
         # start all sockets
@@ -74,6 +77,11 @@ class WorkerDaemon(OperatorDaemon):
             p.start()
             self.active_processes.append((self.active_packet, p))
 
+    def if_master_still_available(self):
+        if self.unable_to_connect.recv():
+            return False
+        return True
+
     def not_performing_job_but_job_queued(self):
         return self.actively_working is False and len(self.scheduled_jobs) > 0
 
@@ -98,20 +106,30 @@ class WorkerDaemon(OperatorDaemon):
             cron_operation.cron_time_passed_worker(self)
 
     def main(self):
-        # TODO: KeyboardInterrupt to shutdown systems!
         while True:
-            self.check_for_cron()
-            # update incoming sockets
-            self.check_if_active_processes_done()
-            # if self.not_performing_job_but_job_queued():
-            if len(self.scheduled_jobs) > 0:
-                self.execute_new_job()
-            operations = self.check_listen_sockets()
-            if len(operations) > 0:
-                for operation in operations:
-                    self.add_scheduled_job(operation)
+            if self.if_master_still_available():
+                self.check_for_cron()
+                # update incoming sockets
+                self.check_if_active_processes_done()
+                # if self.not_performing_job_but_job_queued():
+                if len(self.scheduled_jobs) > 0:
+                    self.execute_new_job()
+                operations = self.check_listen_sockets()
+                if len(operations) > 0:
+                    for operation in operations:
+                        self.add_scheduled_job(operation)
+            else:
+                # Am... I the master now?
+                if self.cluster[0]['worker_id'] == self.worker_id:
+                    # I HAVE THE POWER, time to restart to master mode!
+                    os.system("factory_daemon.py --operator MASTER --configuration_location " + self.config_path)
 
-            # queue incoming jobs for schedule
+                    # See yah
+                    self.shutdown()
+                # not the master :(
+                else:
+                    self.master_port = self.cluster[0]['port']
+                    self.master_host = self.cluster[0]['port']
 
     def send_packet_to_master(self, packet):
         self.send_packet(EndpointConfig(packet=packet, host=self.master_host, port=self.master_port))

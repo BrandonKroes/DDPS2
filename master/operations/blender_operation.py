@@ -34,21 +34,48 @@ class BlenderOperation:
         self.engine = data_packet['engine']
         self.frame_rate = data_packet['frame_rate']
         self.output_path = data_packet['output_path']
+        self.frame_count = 0
+
+    def work_distribution(self, workers, frame_count=None):
+        benchmark_set = True
+
+        if frame_count is None:
+            frame_count = self.frame_count
+
+        for node in workers:
+            try:
+                _element = node['worker']['benchmark']
+            except KeyError:
+                benchmark_set = False
+
+        if benchmark_set:
+            benchmark_level = 0
+            frames_assigned = 0
+            division = []
+
+            for node in workers:
+                benchmark_level += node['worker']['benchmark']
+
+            for node in workers:
+                if node['worker']['worker_id'] == workers[-1]['worker']['worked_id']:
+                    designated_frames = frame_count - frames_assigned
+                else:
+                    designated_frames = int((float(node['worker']['benchmark'] /
+                                                   benchmark_level)) * frame_count)
+                    frames_assigned += designated_frames
+                division.append(designated_frames)
+            return division
+        else:
+            return [(frame_count // len(workers)) + (
+                1 if i < (frame_count % len(workers)) else 0) for i in range(len(workers))]
 
     def orchestrate_cluster(self, nodes):
-
         self.start_time = datetime.datetime.now()
+        self.frame_count = (self.stop_frame + 1) - self.start_frame
 
-        # TODO: Dynamically assign the workload i.e. a node with an iGPU should get a less work than a node with a A6000
+        frames_per_node = self.work_distribution(workers=nodes)
+
         packet_id = 0
-        frames = (self.stop_frame + 1) - self.start_frame
-
-        frames_per_node = self.get_evenly_divided_values(frames, len(nodes))
-        print("===")
-        print(frames_per_node)
-        print(self.blender_file_path)
-        print("===")
-
         offset = 0
         for i in range(len(nodes)):
             brp = BlenderRenderPacket(packet_id, job_type=JobType.RENDER,
@@ -67,7 +94,6 @@ class BlenderOperation:
             self.packets.append(ec)
             packet_id += 1
             offset += frames_per_node[i]
-
         self.orchestrated = True
 
     def node_failure(self, master, failure_node):
@@ -84,22 +110,59 @@ class BlenderOperation:
             # this operation had nothing to do with this task!
             return
 
-        # TODO: Dynamically decide which node should be picked!
-        default_node = master.nodes[0]
-        node_info = default_node[0]
+        # Time to distribute the node!
 
-        # Redirecting the packet to a different node!
-        to_be_redistributed.host = node_info['worker']['host']
-        to_be_redistributed.port = node_info['worker']['port']
+        # It would be convenient if a new node has appeared in the meantime, lets check to be sure.
+        if master.nodes[-1]['worker']['host'] != packets[-1]['worker']['host']:
+            if master.nodes[-1]['worker']['port'] != packets[-1]['worker']['port']:
+                # Great! Let's put the rookie to work!
+                to_be_redistributed.host = master.nodes[-1]['worker']['host']
+                to_be_redistributed.port = master.nodes[-1]['worker']['port']
+                master.send_packet(to_be_redistributed)
+                packets.append(to_be_redistributed)
+                self.packets = packets
+        else:
 
-        master.send_packet(to_be_redistributed)
-        packets.append(to_be_redistributed)
-        self.packets = packets
+            # No rookie :(
+            # Let's see if other nodes are already done!
 
-    @staticmethod
-    def get_evenly_divided_values(value_to_be_distributed, amount_divisions):
-        return [(value_to_be_distributed // amount_divisions) + (
-            1 if i < (value_to_be_distributed % amount_divisions) else 0) for i in range(amount_divisions)]
+            available_nodes = []
+
+
+
+
+            # Lets distribute the frames cluster wide! Everybody chip in!
+
+            # Finding out which frames and how many we need to do!
+            to_be_redistributed_start = to_be_redistributed.packet.data_packet['start_frame']
+            to_be_redistributed_stop = to_be_redistributed.packet.data_packet['stop_frame']
+
+            # Finding out how many frames each node will have to do!
+            frames_per_node = self.work_distribution(workers=master.nodes,
+                                                     frame_count=to_be_redistributed_stop - to_be_redistributed_start)
+
+            packet_id = 0
+
+            # Making sure we start with the right frame!
+            offset = 0
+
+            for i in range(len(master.nodes)):
+                brp = BlenderRenderPacket(packet_id, job_type=JobType.RENDER,
+                                          data_packet={
+                                              'operation_reference': self.operation_id,
+                                              'packet_reference': packet_id,
+                                              'blender_file_path': self.blender_file_path,
+                                              'start_frame': to_be_redistributed_start + offset,
+                                              'stop_frame': to_be_redistributed_stop + offset + frames_per_node[i] - 1,
+                                              'output_folder': self.output_path + str(self.operation_id) + "/",
+                                              'engine': self.engine
+                                          })
+                ec = EndpointConfig(host=master.nodes[i][0]['worker']['host'],
+                                    port=master.nodes[i][0]['worker']['port'],
+                                    packet=brp)
+                self.packets.append(ec)
+                packet_id += 1
+                offset += frames_per_node[i]
 
     def get_packets(self):
         t_packet = self.packets
@@ -120,17 +183,11 @@ class BlenderOperation:
         print(self.__dict__)
 
     def on_cluster_complete(self):
-
         merge_command = "ffmpeg -nostdin -y -framerate " + str(
             self.frame_rate) + " -pattern_type glob -i '" + self.output_path + str(
             self.operation_id) + "/" + "*.png' -c:v libx264 -pix_fmt yuv420p " + self.output_path + str(
             self.operation_id) + "/" + str(
             self.operation_id) + ".mp4  "
-        print(merge_command)
-        # render_process = subprocess
-        # render_process.call(
-        #    [merge_command
-        #     ], shell=True, stdout=False)
 
         self.finished = True
         self.end_time = datetime.datetime.now()
