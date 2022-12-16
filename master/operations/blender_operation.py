@@ -108,10 +108,11 @@ class BlenderOperation:
         result = []
 
         for i in range(0, amount_nodes):
-            totalValue += nodes[i]
+            totalValue += nodes[i][0]['worker']['benchmark']
 
         for i in range(0, amount_nodes):
-            part = int((nodes[i] / totalValue) * value_to_be_distributed)
+            part = int((nodes[i][0]['worker']['benchmark'] /
+                       totalValue) * value_to_be_distributed)
             framesAssigned += part
             if i == (amount_nodes - 1):
                 part += (value_to_be_distributed - framesAssigned)
