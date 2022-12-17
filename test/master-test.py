@@ -16,7 +16,7 @@ njp = ShutdownPacket(packet_id="1", job_type=JobType.RENDER,
                          'output_folder': "/home/brand/lu/ddps/assignment2/example/3/",
                          'engine': "CYCLES"})
 
-md = MasterDaemon("/local/batkroes/DDPS2/config/conf.yaml")
+md = MasterDaemon("/home/brand/lu/ddps/assignment2/config/conf.yaml")
 md.boot()
 # md.process_packet_operation(njp)
 md.main()
